@@ -1,0 +1,174 @@
+.iconsdib {
+    width: 500px;
+    /* height: 350px; */
+    position: fixed;
+    z-index: 9999999999;
+    background-color: white;
+    bottom: 15%;
+    left: 50%;
+    margin-left: -255px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 19px -2px grey;
+}
+
+i.material-icons.md-dark {
+    color: #9a9a9a;
+}
+
+i.material-icons.md-darker {
+    color: #9a9a9a;
+}
+
+a {color: black;}
+
+ul.nav ul.nav li {
+    padding-left: 8%;
+}
+
+.card.card-product .card-title a {
+    font-size: 77%;
+    text-align: left;
+    display: block;
+    line-height: 19px;
+    min-height: 57px;
+}
+
+.card.card-product .card-footer h4 {
+    font-size: 91%;
+}
+
+.row.listproducs {
+    margin-bottom: 53px;
+}
+
+.card-product .card-image a img {
+    max-height: 94px;
+    /* overflow: hidden; */
+}
+
+img.flag {
+    width: auto;
+}
+
+.card-actions.readops {
+    padding-top: 18px;
+}
+
+tr.listfistchild {
+    display: none;
+    background-color: #d6d6d6!important;
+}
+
+tr.addsub {}
+
+tr.subparone {
+    display: none;
+    background-color: #1b638c!important;
+    color: white;
+}
+
+.sweet-alert:before {
+    content : "";
+    display : block;
+    height : 17px;
+    width : 0;
+}
+
+.table .flag img {
+    width: 23px;
+    /* float: left; */
+    /* margin-right: 8px; */
+}
+
+.nomrla img {
+    width: auto;
+}
+
+.contpregs li span {
+    display: inline;
+}
+
+.contpregs li a {
+    display: inline-block;
+}
+
+.contpregs li p {
+    display: initial;
+}
+
+tr.subparone.subpartwo {
+    background-color: #969697!important;
+}
+
+tr.subparone.subpartwo.subparthree {
+    background-color: #b5b5b5!important;
+}
+
+p.tdhlper {
+    float: left;
+    width: 30%;
+}
+
+.tdhlper {
+    width: 30%;
+    float: left;
+    margin-right: 44px;
+}
+
+.tdhlper.onehlpe {
+    width: 11%;
+}
+
+.tdhlper:first-child {
+    width: 14%;
+}
+
+.flag {
+    display: inline;
+}
+
+img {}
+
+.elemv_list i.material-icons {
+    float: left;
+    margin-top: 0px;
+}
+
+tr.subparone.subpartwo td.td-actions a i {
+    color: white;
+}
+
+.table-subtitle td{
+	padding: 2px 6px !important;
+}
+
+.floatchkbx{
+  float: left;
+  width: 170px;
+  margin-bottom: 10px;
+  border: 1px solid #f9f9f9;
+}
+.floatchkbx label{
+  color: gray;
+  padding-bottom: 0px;
+  float: left;
+  text-align: right;
+  font-size: 11px;
+}
+.floatchkbx span.toggle {
+    margin-right: 4px;
+    display: inline-block;
+}
+.custom-switch{
+  float: left;
+  margin-top: 9px;
+}
+.ui-datepicker{
+  z-index:999999;
+}
+.form-group.shwom{
+  display:none;
+}
+.form-group.shwom.visib{
+  display:block;
+}

@@ -1,0 +1,216 @@
+.block{
+    position:absolute;
+}
+
+#square {
+    width: 110px;
+    height: 110px;
+    background: #16a085;
+    left: 0px;
+    top: 0px;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+}
+
+#triangle1 {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 80px 80px 80px;
+    border-color: transparent transparent #f1c40f transparent;
+    position:absolute;
+    top: 334px;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+}
+
+#triangle2 {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 150px 0 150px 150px;
+    border-color: transparent transparent transparent #e74c3c;
+    top: 0px;
+    left: 0px;
+    -webkit-transform: rotate(225deg);
+    -moz-transform: rotate(225deg);
+    -o-transform: rotate(225deg);
+    -ms-transform: rotate(225deg);
+}
+
+#triangle3 {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 150px 150px 0 150px;
+    border-color: #007bff transparent transparent transparent;
+    top: 98px;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+}
+
+#triangle4 {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 150px 150px;
+    border-color: transparent transparent #d63294 transparent;
+    top: 10px;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+}
+
+#triangle5 {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 80px 80px 80px 0;
+    border-color: transparent #69dcf0 transparent transparent;
+    top: 220px;
+    left: 100px;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+}
+
+#parallelogram {
+	width: 150px;
+	height: 80px;
+	background: #e67e22;
+	top: 200px;
+	left: 67px;
+    -webkit-transform: rotate(45deg) skew(45deg);
+    -moz-transform: rotate(45deg) skew(45deg);
+    -o-transform: rotate(45deg) skew(45deg);
+    -ms-transform: rotate(45deg) skew(45deg);
+}
+
+/*Page layout*/
+#blockTray {
+	float: left;
+	height: 100%;
+	width: 20%;
+    padding:5px;
+}
+
+
+#square,#triangle1,#triangle2,#triangle3,
+#triangle4,#triangle5,#parallelogram{
+  position:absolute;
+}
+#tangram {
+  width:940px;
+  height: 650px;
+  float:left;
+  margin-left: auto;
+  margin-right: auto;
+}
+#blockLeft,#canvas{
+  float:left;
+}
+
+#blockLeft{
+  width: 216px;
+  position:relative;
+  height: 450px;
+}
+#canvas{
+  width: 723px;
+  height: 648px;
+  background-position: 0px;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  position: relative;
+}
+
+div#canvas.tourtle {
+    background-image: url(../tests/elephant.png);
+}
+
+div#canvas.cat {
+    background-image: url(../tests/gatogarabato.png);
+    background-position: 0px 0px;
+    width: 456px;
+    height: 650px;
+}
+
+div#canvas.house {
+    background-image: url(../tests/house.png);
+    width: 418px;
+}
+
+
+/* dinho da silva */
+
+#square_s {
+    width: 110px;
+    height: 110px;
+    background: #000;
+    left: 0px;
+    top: 0px;
+}
+
+#triangle1_s {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 80px 80px 80px;
+    border-color: transparent transparent #000 transparent;
+    position:absolute;
+    top: 334px;
+}
+
+#triangle2_s {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 150px 0 150px 150px;
+    border-color: transparent transparent transparent #000;
+    top: 0px;
+    left: 0px;
+}
+
+#triangle3_s {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 150px 150px 0 150px;
+    border-color: #000 transparent transparent transparent;
+    top: 98px;
+}
+
+#triangle4_s {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 150px 150px;
+    border-color: transparent transparent #000 transparent;
+    top: 10px;
+}
+
+#triangle5_s {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 80px 80px 80px 0;
+    border-color: transparent #000 transparent transparent;
+    top: 220px;
+    left: 100px;
+}
+
+#parallelogram_s {
+    width: 150px;
+    height: 80px;
+    background: #000;
+    top: 200px;
+    left: 67px;
+}
