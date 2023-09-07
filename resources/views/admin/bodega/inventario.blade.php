@@ -44,6 +44,7 @@
                     </div>
                     <div class="col-4 col-sm-3 border">
                       <input class="d-inline-block form-control my-1 text-center" id="inicial_{{$item->id}}" name="inicial_{{$item->id}}" type="text" value="{{$item->inicial ?: 0}}" disabled />
+                      <input type="hidden" id="precio_{{$item->id}}" class="precio_producto" rel="{{$item->id}}" value="{{$item->precio ?: 0}}"/>
                     </div>
                   @endforeach
 
@@ -63,17 +64,20 @@
                   <div class="col-2 border bg-dark">
                     <label class="text-light py-1 fs-3"> Recargas </label>
                   </div>
-                  <div class="col-2 border bg-dark">
+                  <div class="col-1 border bg-dark">
                     <label class="text-light py-1 fs-3"> Actual </label>
                   </div>
                   <div class="col-2 border bg-dark">
                     <label class="text-light py-1 fs-3"> Despachado </label>
                   </div>
-                  <div class="col-2 border bg-dark">
+                  <div class="col-1 border bg-dark">
                     <label class="text-light py-1 fs-3"> Final </label>
                   </div>
                   <div class="col-2 col-sm-2 border bg-dark">
                     <label class="text-light py-1 fs-3"> Final físico </label>
+                  </div>
+                  <div class="col-2 col-sm-2 border bg-dark">
+                    <label class="text-light py-1 fs-3"> Total venta </label>
                   </div>
                   @foreach ($productos as $item)
                     <div class="col-2 border">
@@ -92,27 +96,36 @@
                         </div>
                       </div>
                     </div>
-                    <div class="col-2 border">
-                      @php $actual = $item->cantidad_inicial + $item->recarga; @endphp
+                    <div class="col-1 border">
+                      @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
                       <input class="d-inline-block form-control my-1 text-center" id="actual_{{$item->id}}" name="actual_{{$item->id}}" type="text" value="{{($actual) ?: 0}}" disabled />
                     </div>
                     <div class="col-2 border">
                       <input class="d-inline-block form-control my-1 text-center" id="ventas_{{$item->id}}" name="ventas_{{$item->id}}" type="text" value="{{($item->vendido) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 border">
-                      <input class="d-inline-block form-control my-1 text-center" id="final_{{$item->id}}" name="final_{{$item->id}}" type="text" value="{{($actual - $item->vendido) ?: 0}}" disabled />
+                    <div class="col-1 border">
+                      @php $final = $actual - $item->vendido; @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="final_{{$item->id}}" name="final_{{$item->id}}" type="text" value="{{($final) ?: 0}}" disabled />
                     </div>
                     <div class="col-2 border">
                       <input class="form-control my-1 text-center {{($actual - $item->vendido) == $item->cantidad_final ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_final" name="inventario_final[{{$item->id}}][]" type="text" value="{{$item->cantidad_final ?: 0}}" data-titulo="{{$item->nombre}}" onClick="this.select();" autocomplete="off" />
+                    </div>
+                    <div class="col-2 border">
+                      @php @$subtotal = (($item->cantidad_final ?: ($final ?: $actual)) * $item->precio) ?: 0; @endphp
+                      @php @$total    += $subtotal; @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="tot_precio_{{$item->id}}" name="tot_precio_{{$item->id}}" type="text" value="Q. {{number_format($subtotal)}}" disabled />
                     </div>
                   @endforeach
 
                   <div class="col-2 border">
                     <a class="btn btn-primary my-1 w-100" href="#" onclick="CopiarConteoFisico(1, this)">Copiar</a>
                   </div>
-                  <div class="col-8 border"></div>
+                  <div class="col-6 border"></div>
                   <div class="col-2 border">
                     <a class="btn btn-primary my-1 w-100" href="#" onclick="CopiarConteoFisico(2, this)">Copiar</a>
+                  </div>
+                  <div class="col-2 border">
+                    <h1 class="d-block text-center mt-1" id="precio_total">Q. {{number_format($total)}}</h1>
                   </div>
                 </div>
               </div>
@@ -132,6 +145,10 @@
 
     function realizarAccion(formulario){
       $('#' + formulario).attr('onsubmit', '').submit();
+    }
+
+    function numberWithCommas(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     function recargaProducto(id_producto) {
@@ -154,7 +171,7 @@
                     <a href="#" id="cantidad-menos" class="btn btn-dark fs-1 text-dark" style="pointer-events: none;">-</a>
                   </div>
                   <div class="col-6">
-                    <input class="form-control h-100 w-100 text-center" id="cantidad-botellas" name="cantidad-botellas" type="text" value="1" style="font-size: 2rem;" />
+                    <input class="form-control h-100 w-100 text-center" id="cantidad-botellas" name="cantidad-botellas" type="text" value="1" style="font-size: 2rem;" autocomplete="off" />
                   </div>
                   <div class="col-3">
                     <a href="#" id="cantidad-mas" class="btn btn-dark fs-1" style="font-size: 4rem;">+</a>
@@ -172,8 +189,28 @@
             url: ruta,
             dataType: "JSON",
             success: function(respuesta){
-                $('#recarga_' + id_producto).val(respuesta.recarga)
               if (respuesta.actualizado) {
+                actual = parseInt($('#actual_' + id_producto).val()) + cantidad
+                $('#recarga_' + id_producto).val(respuesta.recarga)
+                $('#actual_' + id_producto).val(actual)
+
+                final  = parseInt($('#actual_' + id_producto).val()) - parseInt($('#ventas_' + id_producto).val());
+                $('#final_' + id_producto).val(final)
+                
+                total_vendido = 0;
+                $('input.precio_producto').each(function(){
+                  id_producto = $(this).attr('rel');
+                  actual      = parseInt($('#actual_' + id_producto).val());
+                  final       = parseInt($('#final_' + id_producto).val());
+                  final_fis   = parseInt($('input[name="inventario_final[' + id_producto + '][]"]').val());
+                  cantidad    = final_fis ? final_fis : (final ? final : actual);
+                  precio      = parseInt($(this).val())
+
+                  total_vendido += cantidad * precio;
+                  $('#tot_precio_' + id_producto).val('Q. ' + numberWithCommas(cantidad * precio));
+                })
+
+                $('#precio_total').html('Q. ' + numberWithCommas(total_vendido))
               }
             }
           }).fail( function(jqXHR, textStatus, errorThrown) {

@@ -32,7 +32,10 @@ class bodegaController extends Controller
     $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
     $dia_anterior = date('Y-m-d', strtotime("-1 day", strtotime($fecha)));
     $dia_despues  = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
-    $str = "select ap.id, ap.nombre, ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
+
+    $fecha_final  = date('Y-m-d H:i:s');
+    $fecha_inicio = date('Y-m-d H:i:s', strtotime("-12 hour ", strtotime($fecha_final)));
+    $str = "select distinct ap.id, ap.nombre, ap.precio, if(ai.cantidad_final > 0, ai.cantidad_final, ai.cantidad_inicial + ai.recarga + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
     // echo $str; exit();
     $inventario = DB::select($str);
     
@@ -80,7 +83,10 @@ class bodegaController extends Controller
     $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
     $dia_anterior = date('Y-m-d', strtotime("-1 day", strtotime($fecha)));
     $dia_despues  = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
-    $str = "select ap.id, ap.nombre, ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
+
+    $fecha_final  = date('Y-m-d H:i:s');
+    $fecha_inicio = date('Y-m-d H:i:s', strtotime("-12 hour ", strtotime($fecha_final)));
+    $str = "select distinct ap.id, ap.nombre, ap.precio, if(ai.cantidad_final > 0, ai.cantidad_final, ai.cantidad_inicial + ai.recarga + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
     // echo $str; exit();
     $inventario = DB::select($str);
 
@@ -272,7 +278,8 @@ class bodegaController extends Controller
     $ultima_fecha = DB::select($str);
     $ultima_fecha = count($ultima_fecha) > 0 ? $ultima_fecha[0]->fecha : '';
 
-    $str = "select distinct ap.id, ap.nombre, ai.cantidad_final final, aii.ingreso, (ai.cantidad_final + aii.ingreso) final_total, ap.id_tipo from admin_productos ap left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$fecha') left join (select id_producto, cantidad_final, recarga, fecha from admin_inventario) ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha') where ap.estado order by ap.id_tipo, ap.id;";
+    $str = "select distinct ap.id, ap.nombre, if(ai.cantidad_final > 0, ai.cantidad_final, ai.cantidad_inicial + ai.recarga) final, aii.ingreso, (if(ai.cantidad_final > 0, ai.cantidad_final, ai.cantidad_inicial + ai.recarga) + aii.ingreso) final_total, ap.id_tipo from admin_productos ap left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$fecha') left join (select id_producto, cantidad_inicial, cantidad_final, recarga, fecha from admin_inventario) ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha') where ap.estado order by ap.id_tipo, ap.id;";
+    // echo $str; exit();
     $ingreso = DB::select($str);
 
     if (count($data) > 0) {

@@ -48,16 +48,16 @@
                 @php $total  = 0; @endphp
                 @php $maxMixers = 0; @endphp
                 @foreach ($bdetalle as $item)
-                  <div class="row" id="detalle_{{$item->id}}" rel="contable" data-id_tipo="{{$item->id_tipo}}">
-                    <div class="col-6 text-start pe-0 border-bottom">
+                  <div class="row mt-1 border-bottom pb-1" id="detalle_{{$item->id}}" rel="contable" data-id_tipo="{{$item->id_tipo}}">
+                    <div class="col-6 text-start pe-0">
                       <label class="fs-5 d-block">{{$item->nombre}}</label>
                       <label class="fs-5 d-block">Cantidad: {{$item->cantidad}}</label>
                     </div>
-                    <div class="col-3 ps-0 border-bottom">
+                    <div class="col-3 ps-0">
                       <label class="d-block">&nbsp;</label>
                       <label class="fs-5">Q. {{number_format($item->subtotal, 2)}}</label>
                     </div>
-                    <div class="col-3 ps-0 border-bottom">
+                    <div class="col-3 ps-0">
                       @if ($pedido[0]->id_estado == 2)
                         <a href="#" onclick="borrarBotella({{$item->id}}, '{{$item->subtotal}}', {{$item->mixers}}, 1);" class="btn btn-danger"><i data-feather="trash"></i></a>
                       @endif
@@ -70,10 +70,27 @@
               </div>
 
               <div class="mb-1 overflow-hidden" id="contenedor-mixers">
-                <label class="fs-5 text-start d-block"> <b><span id="total-mixers"></span> Mixers disponibles</b> </label>
+                <div class="row border-bottom pb-1">
+                  <div class="col-12">
+                    <label class="fs-5 text-start"> <b><span id="total-mixers"></span> Mixers gratis</b> </label>
+                    <a href="#" id="agregar-mixers-gratis" class="btn btn-secondary ms-1">
+                      <i data-feather="plus"></i> 
+                    </a>
+                  </div>
+                </div>
+                <div class="row px-1 border-bottom pb-1" id="mixers-gratis" style="display: none;">
+                  @foreach ($mixers as $item)
+                    <div class="col-6 border bg-dark shadow rounded text-center mt-1 p-1">
+                      <a href="#" class="text-light fs-2" title="{{$item->nombre}}" rel="{{$item->mixers}}" onclick="agregarBotellas({{$id_pedido}}, {{$item->id}}, {{$item->id_tipo == 8 ? '0' : '1'}}, {{$item->precio}})">
+                        {{$item->nombre}}
+                      </a>
+                    </div>
+                  @endforeach
+                </div>
+
                 @php $mixers_menos = 0; @endphp
                 @foreach ($mdetalle as $item)
-                  <div class="row" id="detalle_{{$item->id}}">
+                  <div class="row mt-1" id="detalle_{{$item->id}}">
                     <div class="col-9 text-start pe-0 border-bottom">
                       <label class="fs-5 d-block">{{$item->nombre}}</label>
                       <label class="fs-5 d-block">Cantidad: {{$item->cantidad}}</label>
@@ -95,7 +112,7 @@
                 </div>
               </div>
 
-                <div class="row id="boton-cobrar">
+                <div class="row d-none" id="boton-cobrar">
                   <a href="{{route('enviar_cobro', ['id_pedido' => $id_pedido])}}" class="btn btn-dark w-100 m-auto d-block fs-1"><i style="height: 1.8rem; width: 1.8rem;" data-feather="credit-card"></i> {{$pedido[0]->id_tipo == 2 ? 'COBRAR' : 'APROBAR'}} </a>
                 </div>
             </div>
@@ -401,6 +418,10 @@
 
         return false;
       });
+
+      $('#agregar-mixers-gratis').click(function(){
+        $('#mixers-gratis').toggle();
+      })
 
       $('body').on('click', '#cantidad-menos', function(){
         cantidadBotellas = parseInt($('#cantidad-botellas').val()) - 1;
