@@ -15,7 +15,7 @@
           <input type="hidden" name="action" value="{{$action}}" />
           <div class="card-header">
             <h3 class="card-title">
-              DETALLE DEL PEDIDO
+              CIERRE DE CAJA DE COBRADOR
             </h3>
 
             <h3 class="card-title">
@@ -31,7 +31,11 @@
 
                 <div class="row my-1 mb-2">
                   <div class="col-12">
+                    @php $monto = $monto - $descarga_efectivo; @endphp
                     <label class="fs-1 d-block" >Total cobrado: <b>Q. {{number_format($monto, 2)}}</b></label>
+                    @if ($descarga_efectivo > 0)
+                      <label class="fs-4 d-block" >Descarga de efectivo: <b>Q. {{number_format($descarga_efectivo, 2)}}</b></label>
+                    @endif
                   </div>
                 </div>
 
@@ -39,13 +43,13 @@
                 <div class="row mb-1">
                   <div class="col-6">
                     <h1 class="d-block text-center">EFECTIVO</h1>
-                      <input class="form-control w-100 text-center" name="pago-efectivo" id="pago-efectivo" type="number" value="{{@number_format(0)}}" style="font-size: 2rem;" onClick="this.select();" autocomplete="off" {{$pagado <= 0 ? '' : ($pagado == $monto ? 'disabled' : '')}} />
-                      <label class="fs-3 d-block text-center text-primary">Cobrado: Q. {{@number_format($cierre[0]->efectivo)}}</label>
+                      <input class="form-control w-100 text-center" name="pago-efectivo" id="pago-efectivo" type="text" value="{{@number_format($pagado > 0 ? $cierre[0]->efectivo : 0)}}" style="font-size: 2rem;" onClick="this.select();" autocomplete="off" {{$pagado <= 0 ? '' : ($pagado == $monto ? 'disabled' : '')}} />
+                      <label class="fs-4 d-block text-center text-primary">Cobrado: Q. {{@number_format($efectivo - $descarga_efectivo)}}</label>
                   </div>
                   <div class="col-6">
                     <h1 class="d-block text-center">TARJETA</h1>
-                      <input class="form-control w-100 text-center" name="pago-tarjeta" id="pago-tarjeta" type="number" value="{{@number_format(0)}}" style="font-size: 2rem;" onClick="this.select();" autocomplete="off" {{$pagado <= 0 ? '' : ($pagado == $monto ? 'disabled' : '')}} />
-                      <label class="fs-3 d-block text-center text-primary">Cobrado: Q. {{@number_format($cierre[0]->tarjeta)}}</label>
+                      <input class="form-control w-100 text-center" name="pago-tarjeta" id="pago-tarjeta" type="text" value="{{@number_format($pagado > 0 ? $cierre[0]->tarjeta : 0)}}" style="font-size: 2rem;" onClick="this.select();" autocomplete="off" {{$pagado <= 0 ? '' : ($pagado == $monto ? 'disabled' : '')}} />
+                      <label class="fs-4 d-block text-center text-primary">Cobrado: Q. {{@number_format($tarjeta)}}</label>
                   </div>
                 </div>
 
@@ -53,12 +57,14 @@
                   <div class="col-12">
                     <label class="fs-1 d-block border-top {{$pagado == $monto ? 'text-success' : 'text-danger'}}" >Pagado: <b>Q. <span id="pagado">{{number_format($pagado, 2)}}</span></b></label>
                     @if ($pagado < $monto)
-                      <label class="fs-1 d-block border-top text-danger" >Pendiente: <b>Q. <span id="pendiente">0</span></b></label>
+                      <label class="fs-1 d-block border-top text-danger" >Pendiente: <b>Q. <span id="pendiente">{{$pagado > 0 ? ($monto - ($cierre[0]->efectivo + $cierre[0]->tarjeta)) : 0}}</span></b></label>
                     @endif
                   </div>
                 </div>
 
-                  <button class="btn btn-dark w-100 m-auto d-block fs-1" id="btn-pago" {{$pagado > 0 ? '' : ''}}><i style="height: 1.8rem; width: 1.8rem;" data-feather="save"></i> GUARDAR</button>
+                <button class="btn btn-dark w-100 m-auto d-block fs-1" id="btn-pago*" {{$pagado > 0 ? 'disabled' : ''}} >
+                  <i style="height: 1.8rem; width: 1.8rem;" data-feather="save"></i> GUARDAR
+                </button>
               </div>
             </div>
           </div>
@@ -96,7 +102,7 @@
         if (pagado == porPagar) {
           // $('#pagado').parent().parent().removeClass('text-danger').addClass('text-success');
           // $('#pendiente').parent().parent().removeClass('d-block').addClass('d-none');
-          // $('#btn-pago').removeAttr('disabled')
+          $('#btn-pago').removeAttr('disabled')
         }
 
         pagado   = numberWithCommas(pagado.toFixed(2))

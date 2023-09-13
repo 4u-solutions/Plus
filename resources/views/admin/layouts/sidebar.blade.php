@@ -32,14 +32,18 @@
              </li>
            @endforeach
           @endif
-          {{-- <li class=" nav-item"><a class="d-flex align-items-center" href="#"><i data-feather="pie-chart"></i><span class="menu-title text-truncate" data-i18n="Invoice">Ventas</span></a>
-              <ul class="menu-content">
-                  <li><a class="d-flex align-items-center" href="app-invoice-list.html"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="List">Ventas generales</span></a>
-                  </li>
-                  <li><a class="d-flex align-items-center" href="app-invoice-preview.html"><i data-feather="circle"></i><span class="menu-item text-truncate" data-i18n="Preview">Ventas por promotor</span></a>
-                  </li>
-              </ul>
-          </li> --}}
+            <li class=" nav-item">
+              <a class="d-flex align-items-center" href="{{ route('admin.users.acceso') }}">
+                  <i class="me-50" data-feather="lock"></i> 
+                  <span class="menu-title text-truncate" data-i18n="Dashboards"> Cambiar contraseña </span>
+              </a>
+            </li>
+            <li class=" nav-item">
+              <a class="d-flex align-items-center" href="{{ route('admin.logout') }}">
+                  <i class="me-50" data-feather="power"></i> 
+                  <span class="menu-title text-truncate" data-i18n="Dashboards"> Cerrar sesión </span>
+              </a>
+            </li>
         </ul>
     </div>
 </div>

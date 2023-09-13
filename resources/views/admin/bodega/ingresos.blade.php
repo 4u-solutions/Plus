@@ -24,36 +24,41 @@
             </h3>
           </div>
           <div class="card-body">
-            <div class="row">
-              <div class="col-4 col-sm-4 border bg-dark">
-                <label class="text-light py-1 fs-3"> Producto </label>
-              </div>
-              <div class="col-4 col-sm-2 border bg-dark">
-                <label class="text-light py-1 fs-3"> Inventario anterior </label>
-              </div>
-              <div class="col-4 col-sm-2 border bg-dark">
-                <label class="text-light py-1 fs-3"> Compras </label>
-              </div>
-              <div class="col-4 col-sm-2 border bg-dark">
-                <label class="text-light py-1 fs-3"> Inventario final </label>
+            <div class="row" id="panel-alerta">
+              <div class="col-12 bg-warning p-2 text-center">
+                <h1>Gira el dispositivo para tener una mejor visualización</h1>
               </div>
             </div>
-            @foreach ($ingreso as $item)
-              <div class="row">
-                <div class="col-4 col-sm-4 border">
+            <div class="row" id="panel-principal">
+            <div class="row">
+              <div class="col-3 border bg-dark">
+                <label class="text-light py-1 fs-3"> Producto </label>
+              </div>
+              <div class="col-3 border bg-dark">
+                <label class="text-light py-1 fs-3"> Inventario anterior </label>
+              </div>
+              <div class="col-3 border bg-dark">
+                <label class="text-light py-1 fs-3"> Compras </label>
+              </div>
+              <div class="col-3 border bg-dark">
+                <label class="text-light py-1 fs-3"> Inventario final </label>
+              </div>
+
+              @foreach ($ingreso as $item)
+                <div class="col-3 border">
                   <label class="fs-3 pt-1"> {{$item->nombre}} </label>
                 </div>
-                <div class="col-4 col-sm-2 border">
+                <div class="col-3 border">
                   <label class="fs-3 pt-1" id="inicial_{{$item->id}}"> {{$item->final ?: 0}} </label>
                 </div>
-                <div class="col-4 col-sm-2 border">
+                <div class="col-3 border">
                   <input class="form-control my-1" id="ingresos" rel="{{$item->id}}" name="ingresos[{{$item->id}}][]" type="text" value="{{$item->ingreso ?: 0}}" onClick="this.select();" autocomplete="off" />
                 </div>
-                <div class="col-4 col-sm-2 border">
+                <div class="col-3 border">
                   <label class="fs-3 pt-1" id="final_{{$item->id}}"> {{$item->final_total ?: 0}} </label>
                 </div>
-              </div>
-            @endforeach
+              @endforeach
+            </div>
             <div class="row">
               <div class="col-12 col-sm-4 mx-auto border">
                   <button class="btn btn-primary my-1 w-100" style="">
@@ -85,7 +90,27 @@
         var final   = parseInt($(this).val()) + parseInt($('#inicial_' + id).html())
         $('#final_' + id).html(final)
       });
+
+      $(window).resize(function(){
+        ancho = $(window).width();
+        if (ancho < 425) {
+          $('#panel-alerta').show();
+          $('#panel-principal').hide();
+        } else {
+          $('#panel-alerta').hide();
+          $('#panel-principal').show();
+        }
+      })
     });
+
+    var ancho = $(window).width();
+    if (ancho < 550) {
+      $('#panel-alerta').show();
+      $('#panel-principal').hide();
+    } else {
+      $('#panel-alerta').hide();
+      $('#panel-principal').show();
+    }
   </script>
   @component('admin.components.messagesForm')
   @endcomponent

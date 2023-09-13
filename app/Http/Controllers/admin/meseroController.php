@@ -48,7 +48,7 @@ class meseroController extends Controller
       'cliente'    => $_POST['nombre-cliente'],
       'fecha'      => date('Y-m-d'),
       'hora'       => date('h:i:s'),
-      'id_estado'  => $_POST['id_tipo'] == 2 ? 2 : 1,
+      'id_estado'  => $_POST['id_tipo'] == 2 ? 2 : 3,
     ]);
     $model->save();
 
@@ -56,9 +56,10 @@ class meseroController extends Controller
   }
 
   public function pedidos(){
-    $fecha_inicial = date('Y-m-d 12:00:00');
-    $fecha_final   = date('Y-m-d 06:00:00', strtotime($fecha_inicial . ' +1 day'));
-    $str = "select ap.id, ap.id_tipo, atp.nombre tipo, au.name mesero, ap.cliente, atpe.nombre estado, atpe.color, ap.id_estado, ap.monto, ap.saldo from admin_pedidos ap left join admin_tipo_pedido atp on (ap.id_tipo = atp.id) left join admin_users au on (ap.id_usuario = au.id) left join admin_tipo_pedido_estado atpe on (ap.id_estado = atpe.id) where ap.created_at between '$fecha_inicial' and '$fecha_final' and ap.id_tipo in (1,2,3) and ap.id_estado not in (6) and ap.id_usuario = " . Auth::id() . " order by ap.id_tipo, ap.created_at desc;";
+    $fecha_inicial = date('Y-m-d H:i:s');
+    $fecha_final   = date('Y-m-d H:i:s', strtotime($fecha_inicial . ' +1 day'));
+    $fecha_inicial = date('Y-m-d H:i:s', strtotime($fecha_inicial . ' -18 hours'));
+    $str = "select ap.id, ap.id_tipo, atp.nombre tipo, au.name mesero, ap.cliente, atpe.nombre estado, atpe.color, ap.id_estado, ap.monto, ap.saldo from admin_pedidos ap left join admin_tipo_pedido atp on (ap.id_tipo = atp.id) left join admin_users au on (ap.id_usuario = au.id) left join admin_tipo_pedido_estado atpe on (ap.id_estado = atpe.id) where ap.created_at between '$fecha_inicial' and '$fecha_final' and ap.id_tipo in (1,2,3) and ap.id_estado and ap.id_usuario = " . Auth::id() . " and ap.estado order by ap.id_tipo, ap.created_at desc;";
     // echo $str; exit();
     $data = DB::select($str);
     
@@ -70,7 +71,7 @@ class meseroController extends Controller
       'fecha'   => date('Y-m-d'),
       'eb_data'   => (object) array(
         array(
-          'titulo'  => 'NUEVO PEDIDO',
+          'titulo'  => 'NPE',
           'route'   => 'admin.mesero.toma_de_pedidos',
           'params'  => []
         )
@@ -83,7 +84,8 @@ class meseroController extends Controller
     $dia_despues = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
 
     $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
-    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if (ai2.cantidad_final, ai2.cantidad_final, if (ai2.cantidad_inicial, ai2.cantidad_inicial + ai2.recarga, if (ai.cantidad_final, ai.cantidad_final, ai.cantidad_inicial + ai.recarga))) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '2023-09-06') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo not in (8, 10) order by mas_vendido desc;";
+    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if (ai2.cantidad_final, ai2.cantidad_final, if (ai2.cantidad_inicial, ai2.cantidad_inicial + ai2.recarga, if (ai.cantidad_final, ai.cantidad_final, ai.cantidad_inicial + ai.recarga))) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '2023-09-06') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and contable and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo not in (8, 10) order by mas_vendido desc;";
+    // echo $str; exit();
     $productos = DB::select($str);
 
     $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if (ai2.cantidad_final, ai2.cantidad_final, if (ai2.cantidad_inicial, ai2.cantidad_inicial + ai2.recarga, if (ai.cantidad_final, ai.cantidad_final, ai.cantidad_inicial + ai.recarga))) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '2023-09-06') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo in (8) order by mas_vendido desc;";
@@ -97,11 +99,11 @@ class meseroController extends Controller
       $data[] = $item;
     }
 
-    $str      = "select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, ap.id_tipo from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 1 and apd.estado and apd.despachado in (1, 0) order by id desc;";
+    $str      = "select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, ap.id_tipo from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 1 and apd.estado and apd.aprobado in (0) and apd.despachado in (0) order by id desc;";
     // echo $str; exit();
     $bdetalle = DB::select($str);
 
-    $str     = "select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, ap.id_tipo from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 0 and apd.estado and apd.despachado in (1, 0) order by id;";
+    $str     = "select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, ap.id_tipo from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 0 and apd.estado and apd.aprobado in (0) and apd.despachado in (0) order by id;";
     $mdetalle = DB::select($str);
 
     $pedido = pedidosModel::where('id', $id_pedido)->get();
@@ -140,29 +142,47 @@ class meseroController extends Controller
     ]);
   }
 
-  public function cargar_productos($id_pedido, $id_producto, $cantidad, $max_mixers, $contable) {
+  public function cargar_productos($id_pedido, $id_producto, $cantidad, $contable) {
     $str     = "select * from admin_productos where id = $id_producto;";
-    $prod = DB::select($str);
-    // $prod = ProductosModel::where('id', $id_producto)->get();
+    $prod = DB::select($str)[0];
+
+    $prod_asoc = array();
+    for ($i = 1; $i <= $cantidad; $i++) {
+      $prod_asoc[] = $prod->productos_asociados;
+    }
+    $prod->productos_asociados = implode(',', $prod_asoc);
+
+    $prod_cant = array();
+    foreach(explode(',', $prod->productos_asociados) as $key => $value) {
+      @$prod_cant[$value] += 1;
+    }
+    $prod_asoc = array();
+    foreach($prod_cant as $key => $value) {
+      $prod_asoc[] = array(
+        'id'  => $key,
+        'cnt' => $value
+      );
+    }
 
     $model = pedidosDetalleModel::create([
       'id_pedido'   => $id_pedido,
       'id_producto' => $id_producto,
       'cantidad'    => $cantidad,
-      'subtotal'    => $prod[0]->precio * $cantidad,
+      'subtotal'    => $prod->precio * $cantidad,
       'contable'    => $contable,
     ]);
     $guardado = $model->save() ? true : false;
 
     $data = array(
       'id_det'   => $model->id,
-      'nombre'   => $prod[0]->nombre,
-      'mixers'   => $prod[0]->mixers,
-      'subtotal' => number_format($prod[0]->precio * $cantidad, 2,".",","),
+      'nombre'   => $prod->nombre,
+      'mixers'   => $prod->mixers,
+      'subtotal' => number_format($prod->precio * $cantidad, 2,".",","),
       'cantidad' => $cantidad,
       'guardado' => $guardado,
       'contable' => $contable,
-      'id_tipo'  => $prod[0]->id_tipo
+      'id_tipo'  => $prod->id_tipo,
+      'prod_asoc' => json_encode($prod_asoc)
     );
 
     return json_encode($data);
@@ -206,6 +226,12 @@ class meseroController extends Controller
       'aprobar'   => $aprobar
     ]);
 
+    if ($pedido->id_tipo == 1) {
+      DB::table('admin_pedidos')->where('id', $id_pedido)->update([
+        'id_cobrador' => 0
+      ]);
+    }
+
     if ($mesero->roleUS == 3) {
       return redirect('admin/pedido_detallado/' . $id_pedido);
     } else {
@@ -220,19 +246,22 @@ class meseroController extends Controller
       'id_estado' => $pedido->id_tipo == 1 ? ($pedido->saldo <= 0 ? 6 : 2) : 6
     ]);
 
+    $str = "select * from admin_pedidos_detalle where id_pedido = $id_pedido and estado and aprobado = 1 and despachado = 1 and recibido = 0;";
+    $detalle = DB::select($str);
+    foreach($detalle as $item) {
+      DB::table('admin_pedidos_detalle')->where('id', $item->id)->update([
+        'recibido' => 1
+      ]);
+    }
+
     return redirect('admin/pedidos')->with('success','Guardado correctamente!');
   }
 
-  public function balance(){
-    $mesero        = UserAdmin::where('id', Auth::id())->get()[0];
-    $fecha_final   = date('Y-m-d');
-    $fecha_inicial = strtotime("-18 hour", strtotime($fecha_final));
-    $fecha_inicial = date('Y-m-d', $fecha_inicial);
-
-    
-    $fecha_inicial = date('Y-m-d 12:00:00');
-    $fecha_final   = date('Y-m-d 06:00:00', strtotime($fecha_inicial . ' +1 day'));
-    $str = "select ap.id, ap.nombre, ap.precio, sum(apd.cantidad) cantidad, sum(subtotal) subtotal from admin_productos ap left join admin_pedidos_detalle apd on (ap.id = apd.id_producto and apd.estado) left join admin_pedidos ape on (apd.id_pedido = ape.id) where ap.estado and apd.created_at between '$fecha_inicial 12:00:00' and '$fecha_final 06:00:00' and ape.id_usuario = " . Auth::id() . " and apd.contable = 1 and apd.aprobado and apd.despachado group by ap.id, ap.nombre, ap.precio order by ap.id_tipo, ap.nombre;";
+  public function balance($fecha = null){
+    $mesero        = UserAdmin::where('id', Auth::id())->get()[0];    
+    $fecha_final   = $fecha ? date('Y-m-d 06:00:00', strtotime($fecha)) : date('Y-m-d H:i:s');
+    $fecha_inicial   = date('Y-m-d 18:00:00', strtotime($fecha_final . ' -1 day'));
+    $str = "select ap.id, ap.nombre, ap.precio, sum(apd.cantidad) cantidad, sum(subtotal) subtotal from admin_productos ap left join admin_pedidos_detalle apd on (ap.id = apd.id_producto and apd.estado) left join admin_pedidos ape on (apd.id_pedido = ape.id) where ap.estado and apd.created_at between '$fecha_inicial' and '$fecha_final' and ape.id_usuario = " . Auth::id() . " and apd.contable = 1 and apd.aprobado and apd.despachado group by ap.id, ap.nombre, ap.precio order by ap.id_tipo, ap.nombre;";
     // echo $str; exit();
     $balance = DB::select($str);
 
@@ -241,6 +270,7 @@ class meseroController extends Controller
     return view('admin.mesero.balance', [
       'menubar' => $this->list_sidebar(),
       'balance' => $balance,
+      'fecha'   => substr($fecha_final, 0, 10),
       'porcentaje_pago' => $porcentaje_pago,
       'mesero'  => $mesero
     ]);
@@ -248,7 +278,8 @@ class meseroController extends Controller
 
   public function cargar_pull($id_pedido) {
     $actualizado = DB::table('admin_pedidos')->where('id', $id_pedido)->update([
-      'id_estado' => 7
+      'id_estado' => 7,
+      'id_cobrador' => 0
     ]);
 
     return redirect('admin/pedidos')->with('success','Guardado correctamente!');

@@ -39,11 +39,13 @@
                     <label class="text-light py-1 fs-3"> Inicial </label>
                   </div>
                   @foreach ($productos as $item)
-                    <div class="col-8 col-sm-9 border">
+                    @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
+                    @php $final = $actual - $item->vendido; @endphp
+                    <div class="col-8 col-sm-9 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <label class="fs-3 pt-1"> {{$item->nombre}} </label>
                     </div>
-                    <div class="col-4 col-sm-3 border">
-                      <input class="d-inline-block form-control my-1 text-center" id="inicial_{{$item->id}}" name="inicial_{{$item->id}}" type="text" value="{{$item->inicial ?: 0}}" disabled />
+                    <div class="col-4 col-sm-3 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                      <input class="d-inline-block form-control my-1 text-center {{$final == 0 ? 'bg-danger text-light' : ''}}" id="inicial_{{$item->id}}" name="inicial_{{$item->id}}" type="text" value="{{$item->inicial ?: 0}}" disabled />
                       <input type="hidden" id="precio_{{$item->id}}" class="precio_producto" rel="{{$item->id}}" value="{{$item->precio ?: 0}}"/>
                     </div>
                   @endforeach
@@ -80,10 +82,12 @@
                     <label class="text-light py-1 fs-3"> Total venta </label>
                   </div>
                   @foreach ($productos as $item)
-                    <div class="col-2 border">
+                    @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
+                    @php $final = $actual - $item->vendido; @endphp
+                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="d-inline-block form-control my-1 text-center {{$item->inicial == $item->cantidad_inicial ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_inicial" name="inventario_inicial[{{$item->id}}][]" data-titulo="{{$item->nombre}}" type="text" value="{{$item->cantidad_inicial ?: 0}}" onClick="this.select();" autocomplete="off" />
                     </div>
-                    <div class="col-2 border">
+                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <div class="row">
                         <div class="col-6 p-0">
                           <input disabled="true" class="d-inline-block form-control my-1 ms-1 text-center" rel="{{$item->id}}" id="recarga_{{$item->id}}" name="recarga[{{$item->id}}][]" type="text" value="{{$item->recarga ?: 0}}" onClick="this.select();" />
@@ -96,22 +100,20 @@
                         </div>
                       </div>
                     </div>
-                    <div class="col-1 border">
-                      @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
+                    <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="d-inline-block form-control my-1 text-center" id="actual_{{$item->id}}" name="actual_{{$item->id}}" type="text" value="{{($actual) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 border">
+                    <div class="col-2 borde {{$final == 0 ? 'bg-danger text-light' : ''}}r">
                       <input class="d-inline-block form-control my-1 text-center" id="ventas_{{$item->id}}" name="ventas_{{$item->id}}" type="text" value="{{($item->vendido) ?: 0}}" disabled />
                     </div>
-                    <div class="col-1 border">
-                      @php $final = $actual - $item->vendido; @endphp
+                    <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="d-inline-block form-control my-1 text-center" id="final_{{$item->id}}" name="final_{{$item->id}}" type="text" value="{{($final) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 border">
+                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="form-control my-1 text-center {{($actual - $item->vendido) == $item->cantidad_final ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_final" name="inventario_final[{{$item->id}}][]" type="text" value="{{$item->cantidad_final ?: 0}}" data-titulo="{{$item->nombre}}" onClick="this.select();" autocomplete="off" />
                     </div>
-                    <div class="col-2 border">
-                      @php @$subtotal = (($item->cantidad_final ?: ($final ?: $actual)) * $item->precio) ?: 0; @endphp
+                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                      @php @$subtotal = ((isset($item->cantidad_final) ? $item->cantidad_final : (isset($final) ? $final : $actual)) * $item->precio) ?: 0; @endphp
                       @php @$total    += $subtotal; @endphp
                       <input class="d-inline-block form-control my-1 text-center" id="tot_precio_{{$item->id}}" name="tot_precio_{{$item->id}}" type="text" value="Q. {{number_format($subtotal)}}" disabled />
                     </div>

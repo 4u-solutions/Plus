@@ -17,14 +17,8 @@
                 @csrf
                 <input type="hidden" name="id_tipo" value="{{$item->id}}">
                 <a  href="javascript: return false;" onclick="crearPedido('{{$item->id}}');" title="Tipo de pedido">
-                  <div class="col-12 border bg-dark mb-2 shadow rounded">
-                    <div class="embed-responsive embed-responsive-1by1">
-                        <div class="embed-responsive-item h-100">
-                          <div class="row align-items-center h-100 p-5">
-                            <label class="fs-1 text-light">{{$item->nombre}}</label>
-                          </div>
-                        </div>
-                      </div>
+                  <div class="col-12 border bg-dark mb-2 shadow roundedfs-3 fs-3 text-light py-1 px-2 rounded">
+                      <i style="height: 1.8rem; width: 1.8rem;" data-feather="{{$item->feather}}"></i> {{$item->nombre}}
                   </div>
                 </a>
               </form>

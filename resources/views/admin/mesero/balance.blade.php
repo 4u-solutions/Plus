@@ -9,6 +9,11 @@
           <h3 class="card-title">
             BALANCE DIARIO
           </h3>
+
+          <h3 class="card-title">
+            <label class="d-inline-block mx-1">Fecha:</label>
+            <input type="date" class="form-control d-inline-block w-auto" id="fecha" name="fecha" value="{{$fecha}}" onchange="cambioDeFecha(this.value);" />
+            </a>
           </h3>
         </div>
         <div class="card-body">
@@ -79,6 +84,14 @@
       </div>
     </div>
   </div>
+
+  <script type="text/javascript">
+    function cambioDeFecha(fecha) {
+      if (!isNaN(Number(new Date(fecha)))) {
+        window.location = "/admin/balance/" + encodeURIComponent(fecha)
+      }
+    }
+  </script>
   @component('admin.components.messagesForm')
   @endcomponent
 @endsection

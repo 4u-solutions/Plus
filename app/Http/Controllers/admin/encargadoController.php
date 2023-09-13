@@ -95,7 +95,8 @@ class encargadoController extends Controller
       $pedido->save();
       $id_pedido = $pedido->id;
     }
-    $prod = productosModel::where('id', $id_producto)->get();
+    $str = "select * from admin_productos where id = $id_producto;";
+    $prod = DB::select($str);
 
     $model = pedidosDetalleModel::create([
       'id_pedido'   => $id_pedido,
@@ -176,6 +177,7 @@ class encargadoController extends Controller
       // $str = "select au.id, au.name, au.pago_minimo, sum(adp.monto) monto from admin_asignacion asi left join admin_users au on (asi.id_mesero = au.id) left join admin_pedidos ap on (asi.id_mesero = ap.id_usuario and ap.estado) left join admin_pedido_pagos adp on (adp.id_pedido = ap.id and substring(adp.created_at, 1, 10) = asi.fecha and adp.estado) where asi.fecha  ='{$item->fecha}' group by au.id, au.id, au.name, au.pago_minimo;";
 
       $str = "select au.id, au.name, au.pago_minimo, if(asi.id is null, 0, 1) asignado, sum(adp.monto) monto from admin_users au left join admin_asignacion asi on (asi.id_mesero = au.id and asi.fecha ='{$item->fecha}') left join admin_pedidos ap on (asi.id_mesero = ap.id_usuario and ap.estado) left join admin_pedido_pagos adp on (adp.id_pedido = ap.id and substring(adp.created_at, 1, 10) = asi.fecha and adp.estado) where au.roleUS = 5 group by au.id, au.name, au.pago_minimo, asi.id;";
+      // echo $str; exit();
 
       $dataTemp = [];
       foreach(DB::select($str) as $keyc => $itemc) {
@@ -188,7 +190,7 @@ class encargadoController extends Controller
       }
     }
 
-    // dd($data);
+    dd($data);
 
     return view('admin.encargado.pagos', [
       'menubar' => $this->list_sidebar(),

@@ -29,9 +29,11 @@
 
               @if ($pedido->id_estado <= 4)
                 <div class="row">
-                  <a href="{{ route('despachar_pedido', ['id_pedido' => $id_pedido]) }}" class="btn btn-dark w-50 m-auto d-block">
-                    <i data-feather="check"></i> DESPACHAR</button>
-                  </a>
+                    <div class="col-12">
+                      <a href="{{ route('despachar_pedido', ['id_pedido' => $id_pedido]) }}" class="btn btn-dark d-block fs-3">
+                        <i style="height: 1.8rem; width: 1.8rem;" data-feather="check"></i> DESPACHAR
+                      </a>
+                    </div>
                 </div>
               @endif
             </div>

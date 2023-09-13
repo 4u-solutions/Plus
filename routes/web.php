@@ -50,18 +50,19 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
   Route::get('/pedidos/{fecha?}', 'meseroController@pedidos')->name('admin.mesero.pedidos');
   Route::get('/agregar_productos/{id?}', 'meseroController@agregar_productos')->name('agregar_productos');
   Route::get('/selecionar_botella/{id_pedido?}/{id_tipo?}', 'meseroController@selecionar_botella')->name('selecionar_botella');
-  Route::get('/cargar_productos/{id_pedido?}/{id_producto?}/{cantidad?}/{max_mixers?}/{contable?}', 'meseroController@cargar_productos')->name('cargar_productos');
+  Route::get('/cargar_productos/{id_pedido?}/{id_producto?}/{cantidad?}/{contable?}', 'meseroController@cargar_productos')->name('cargar_productos');
   Route::get('/borrar_productos/{id_detalle?}', 'meseroController@borrar_productos')->name('borrar_productos');
   Route::get('/enviar_cobro/{id_pedido?}', 'meseroController@enviar_cobro')->name('enviar_cobro');
   Route::get('/pedido_recibido/{id_pedido?}', 'meseroController@pedido_recibido')->name('pedido_recibido');
-  Route::get('/balance/', 'meseroController@balance')->name('admin.mesero.balance');
   Route::get('/cargar_pull/{id_pedido?}', 'meseroController@cargar_pull')->name('cargar_pull');
+  Route::get('/balance/{fecha?}', 'meseroController@balance')->name('admin.mesero.balance');
 
   Route::get('/pedidos_por_cobrar/{fecha?}', 'cobradorController@pedidos_por_cobrar')->name('admin.cobrador.pedidos_por_cobrar');
   Route::get('/pedido_detallado/{id?}', 'cobradorController@pedido_detallado')->name('pedido_detallado');
   Route::match(array('GET','POST','PUT'), '/enviar_pago/{id_pedido?}', 'cobradorController@enviar_pago')->name('enviar_pago');
   Route::match(array('GET','POST','PUT'), '/cierre/{fecha?}', 'cobradorController@cierre')->name('admin.cobrador.cierre');
   Route::get('/editar_pedido/{id_pedido?}', 'cobradorController@editar_pedido')->name('editar_pedido');
+  Route::match(array('GET','POST','PUT'), '/descarga_efectivo/{fecha?}', 'cobradorController@descarga_efectivo')->name('admin.cobrador.descarga_efectivo');
 
   Route::get('/cortesias', 'encargadoController@cortesias')->name('admin.encargado.cortesias');
   Route::get('/agregar_cortesia/{id_pedido?}', 'encargadoController@agregar_cortesia')->name('admin.gerencia.agregar_cortesia');

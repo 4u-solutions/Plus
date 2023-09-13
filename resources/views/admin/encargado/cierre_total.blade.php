@@ -54,7 +54,9 @@
                   @if ($item->aprobado)
                     <h1 class="bg-success text-light m-auto text-center">APROBADO</h1>
                   @else
-                    <button class="btn btn-dark w-50 m-auto d-block" id="btn-pago"><i data-feather="save"></i> APROBAR</button>
+                    <button class="btn btn-dark w-100 d-block fs-1" id="btn-pago">
+                      <i style="height: 1.8rem; width: 1.8rem;" data-feather="save"></i> APROBAR
+                    </button>
                   @endif
                 </div>
               </div>

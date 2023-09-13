@@ -10,6 +10,7 @@ class tipoPedidoModel extends Model
   protected $fillable = [
     "id",
     "nombre",
+    "feathder",
     "es_admin"
   ];
 

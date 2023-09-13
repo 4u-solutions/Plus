@@ -8,88 +8,74 @@
           <input type="hidden" name="action" value="1">
           <div class="card-header">
             <h3 class="card-title">
-              LISTADO DE PEDIDOS
+              LISTADO DE ORDENES DE CLIENTES
             </h3>
           </div>
           <div class="card-body">
-            @foreach ($data as $item)
-              <div class="row">
-                <div class="col-12 border bg-{{$item->color}} mb-2 shadow rounded">
-                  <div class="row align-items-center h-100 p-1">
-                    <div class="col-6">
-                      <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
+            <div class="row">
+              @foreach ($data as $item)
+                @if (($item->id_tipo == 1) || ($item->id_tipo == 2 && $item->id_estado < 6))
+                  <div class="col-12 col-lg-6 border bg-{{$item->color}} mb-2 shadow rounded">
+                    <div class="row align-items-center h-100 p-1">
+                      <div class="col-12">
+                        <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
+                          @if ($item->id_tipo == 1)
+                            <b>Cuenta: {{$item->tipo}}</b>
+                          @else
+                            Cuenta: {{$item->tipo}}
+                          @endif
+                        </label>
+                        <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">Cliente: {{$item->cliente}}</label>
+                        <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
+                          @if ($item->id_tipo == 1)
+                            <b>Estado: {{$item->estado}}</b>
+                          @else
+                            Estado: {{$item->estado}}
+                          @endif
+                        </label>
                         @if ($item->id_tipo == 1)
-                          <b>Cuenta: {{$item->tipo}}</b>
-                        @else
-                          Cuenta: {{$item->tipo}}
+                          <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block"><b>Saldo: Q. {{number_format($item->saldo, 2)}}</b></label>
                         @endif
-                      </label>
-                      <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">Cliente: {{$item->cliente}}</label>
-                      <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
-                        @if ($item->id_tipo == 1)
-                          <b>Estado: {{$item->estado}}</b>
-                        @else
-                          Estado: {{$item->estado}}
-                        @endif
-                      </label>
-                      @if ($item->id_tipo == 1)
-                        <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block"><b>Saldo: Q. {{number_format($item->saldo, 2)}}</b></label>
-                      @endif
-                    </div>
 
-                    <div class="col-{{$item->id_tipo == 1 ? 2 : 3}} h-100">
-                      @if ($item->id_estado == 5)
-                        <div class="embed-responsive embed-responsive-1by1 h-100">
-                          <div class="embed-responsive-item h-100">
-                            <a href="{{ route('pedido_recibido', ['id_pedido' => $item->id]) }}" class="w-100 h-100 bg-light d-block text-center rounded">
-                              <div class="row align-items-center h-100">
-                                <div class="col-12">
-                                  <h1 class="text-dark m-0">R</h1>
-                                </div>
-                              </div>
+                        @if ($item->id_tipo == 2)
+                          <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block"><b>Cobrar: Q. {{number_format($item->monto, 2)}}</b></label>
+                        @endif
+                      </div>
+
+                      <div class="col-12">
+                        @if ($item->id_estado == 5)
+                          <a href="{{ route('pedido_recibido', ['id_pedido' => $item->id]) }}" class="fs-3 py-1 bg-light d-block text-center rounded">
+                            <i style="height: 1.8rem; width: 1.8rem;" data-feather="check"></i> RECIBIDO
+                          </a>
+                        @endif 
+                      </div>
+
+                      @if ($item->id_tipo == 1 && $item->id_estado != 7)
+                        @if ($item->id_tipo == 1 && $item->id_estado != 4)
+                          <div class="col-12 mt-1">
+                            <a href="{{ route('cargar_pull', ['id_pedido' => $item->id]) }}" class="fs-3 py-1 bg-{{$item->color == 'dark' ? 'light' : 'dark'}} text-{{$item->color == 'dark' ? 'dark' : 'light'}} d-block text-center rounded">
+                              <i style="height: 1.8rem; width: 1.8rem;" data-feather="credit-card"></i> RECARGAR
                             </a>
                           </div>
-                        </div>
+                        @endif
                       @endif 
-                    </div>
 
-                    @if ($item->id_tipo == 1)
-                      <div class="col-{{$item->id_tipo == 1 ? 2 : 3}} h-100">
-                        @if ($item->id_estado > 1)
+                      @if ($item->id_estado > 1)
+                        <div class="col-12 mt-1">
                           <div class="embed-responsive embed-responsive-1by1 h-100">
                             <div class="embed-responsive-item h-100">
-                              <a href="{{ route('cargar_pull', ['id_pedido' => $item->id]) }}" class="w-100 h-100 bg-{{$item->color == 'dark' ? 'light' : 'dark'}} d-block text-center rounded">
-                                <div class="row align-items-center h-100">
-                                  <div class="col-12">
-                                    <h1 class="text-{{$item->color}} m-0">C</h1>
-                                  </div>
-                                </div>
+                              <a href="{{ route('agregar_productos', ['id' => $item->id]) }}" class="fs-3 py-1 bg-{{$item->color == 'dark' ? 'light' : 'dark'}} text-{{$item->color == 'dark' ? 'dark' : 'light'}} d-block text-center rounded">
+                                <i style="height: 1.8rem; width: 1.8rem;" data-feather="list"></i> DETALLE
                               </a>
                             </div>
                           </div>
-                        @endif 
-                      </div>
-                    @endif 
-
-                    @if ($item->id_estado > 1)
-                      <div class="col-{{$item->id_tipo == 1 ? 2 : 3}} h-100">
-                        <div class="embed-responsive embed-responsive-1by1 h-100">
-                          <div class="embed-responsive-item h-100">
-                            <a href="{{ route('agregar_productos', ['id' => $item->id]) }}" class="aw-100 h-100 bg-{{$item->color == 'dark' ? 'light' : 'dark'}} d-block text-center rounded">
-                              <div class="row align-items-center h-100">
-                                <div class="col-12">
-                                  <h1 class="text-{{$item->color}} m-0">D</h1>
-                                </div>
-                              </div>
-                            </a>
-                          </div>
                         </div>
-                      </div>
-                    @endif
+                      @endif
+                    </div>
                   </div>
-                </div>
-              </div>
-            @endforeach
+                @endif
+              @endforeach
+            </div>
           </div>
         </form>
       </div>

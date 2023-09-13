@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
+use App\adminModels\UserAdmin;
+use Illuminate\Support\Facades\Config;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
     {
         view()->composer('*',function($view) {
             $view->with('extra_button', false);
+
+            $usuario = @UserAdmin::where('id', @Auth::id())->get()[0];
+            Config::set('nombre_usuario', strtoupper(@$usuario->name));
+
         });
     }
 }

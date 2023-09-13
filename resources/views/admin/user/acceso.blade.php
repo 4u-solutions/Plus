@@ -22,18 +22,18 @@
               </div>
             </div>
             <div class="row mb-2">
-              <div class="col-12 col-sm-4 bg-dark text-end m-auto">
+              <div class="col-12 col-sm-4 bg-dark text-left m-auto">
                 <label class="text-light py-1 fs-3"> Contraseña: </label>
               </div>
-              <div class="col-12 col-sm-8 text-end m-auto">
+              <div class="col-12 col-sm-8 m-auto mt-1">
   				      <input class="form-control w-100" name="pass" id="pass" type="password" value="" style="font-size: 2rem;" onClick="this.select();" autofocus required />
               </div>
             </div>
             <div class="row">
-              <div class="col-12 col-sm-4 bg-dark text-end m-auto">
+              <div class="col-12 col-sm-4 bg-dark text-left m-auto">
                 <label class="text-light py-1 fs-3"> Repetir contraseña: </label>
               </div>
-              <div class="col-12 col-sm-8 text-end m-auto">
+              <div class="col-12 col-sm-8 m-auto mt-1">
   				      <input class="form-control w-100" name="rpass" id="rpass" type="password" value="" style="font-size: 2rem;" onClick="this.select();" required />
               </div>
             </div>

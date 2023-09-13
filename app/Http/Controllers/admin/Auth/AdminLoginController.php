@@ -34,9 +34,9 @@ class AdminLoginController extends Controller
         } elseif ($usuario->roleUS == 3) {
           $ruta = route('admin.bodega.inventario');
         } elseif ($usuario->roleUS == 4 || $usuario->roleUS == 6) {
-          $ruta = route('admin.cobrador.pedidos_por_cobrar');
-        } elseif ($usuario->roleUS == 5) {
           $ruta = route('admin.mesero.pedidos');
+        } elseif ($usuario->roleUS == 5) {
+          $ruta = route('admin.mesero.balance');
         } elseif ($usuario->roleUS == 7) {
           $ruta = route('admin.gerencia.resumen');
         } elseif ($usuario->roleUS == 8) {
