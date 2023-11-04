@@ -168,10 +168,15 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
     return redirect('admin/lista_invitados');
   });
 
- Route::get('/limpiar-vista', function() {
-     \Artisan::call('view:clear');
-     return redirect('admin/lista_invitados');
- });
+  Route::get('/limpiar-vista', function() {
+    \Artisan::call('view:clear');
+    return redirect('admin/lista_invitados');
+  });
+
+  Route::get('/optimize', function() {
+    \Artisan::call('optimize:clear');
+    return redirect('admin/lista_invitados');
+  });
 });
 
 Route::get('/', function () {
