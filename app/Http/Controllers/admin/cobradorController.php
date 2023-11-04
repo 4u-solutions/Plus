@@ -12,6 +12,7 @@ use App\adminModels\pedidosModel;
 use App\adminModels\inventarioCierreModel;
 use App\adminModels\UserAdmin;
 use App\adminModels\descargasEfectivoModel;
+use App\adminModels\listaMeserosModel;
 
 class cobradorController extends Controller
 {
@@ -34,24 +35,10 @@ class cobradorController extends Controller
     // echo $str; exit();
     $data = DB::select($str);
 
-    Config::set('extra_button', true);
-
     return view('admin.cobrador.pedidos', [
       'menubar' => $this->list_sidebar(),
       'data'    => $data,
-      'fecha'   => $fecha,
-      'eb_data'   => (object) array(
-        array(
-          'titulo'  => 'DEF',
-          'route'   => 'admin.cobrador.descarga_efectivo',
-          'params'  => []
-        ),
-        array(
-          'titulo'  => 'CIE',
-          'route'   => 'admin.cobrador.cierre',
-          'params'  => []
-        )
-      )
+      'fecha'   => $fecha
     ]);
   }
 
@@ -59,54 +46,61 @@ class cobradorController extends Controller
     $edit     = false;
     $pedido = pedidosModel::where('id', $id_pedido)->get()[0];
 
-    if (!$pedido->id_cobrador) {
-      DB::table('admin_pedidos')->where('id', $id_pedido)->update([
-        'id_cobrador' => Auth::id(),
-      ]);
+    $bdetalle = DB::select("select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, apd.pagado from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 1 " . ($pedido->id_tipo == 1 ? ' and apd.aprobado = 0' : '') ." order by id desc;");
 
-      $bdetalle = DB::select("select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 1 " . ($pedido->id_tipo == 1 ? ' and apd.aprobado = 0' : '') ." order by id desc;");
+    $mdetalle = DB::select("select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers, apd.pagado from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 0 " . ($pedido->id_tipo == 1 ? ' and apd.aprobado = 0' : '') ." order by id;");
 
-      $mdetalle = DB::select("select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 0 " . ($pedido->id_tipo == 1 ? ' and apd.aprobado = 0' : '') ." order by id;");
-
-      $pagos = pedidosPagosModel::where('id_pedido', $id_pedido)->get();
-      if (count($pagos) > 0) {
-        $edit = true;
-      }
-
-      return view('admin.cobrador.pedido_detallado', [
-        'menubar'   => $this->list_sidebar(),
-        'asignado'  => false,
-        'id_pedido' => $id_pedido,
-        'bdetalle'  => $bdetalle,
-        'mdetalle'  => $mdetalle,
-        'pagos'     => $pagos,
-        'pedido'    => $pedido,
-        'edit'      => $edit
-      ]);
-    } else {
-      $str = "select admin_users.name from admin_pedidos left join admin_users on (admin_pedidos.id_cobrador = admin_users.id) where admin_users.statusUs and admin_pedidos.estado and admin_pedidos.id = $id_pedido;";
-      $cobrador = DB::select($str)[0]->name;
-    
-      Config::set('extra_button', true);
-
-      return view('admin.cobrador.pedido_detallado', [
-        'menubar'  => $this->list_sidebar(),
-        'asignado' => true,
-        'cobrador' => strtoupper($cobrador),
-        'eb_data'   => (object) array(
-          array(
-            'titulo'  => 'REGRESAR',
-            'route'   => 'admin.cobrador.pedidos_por_cobrar',
-            'params'  => []
-          ),
-          array(
-            'titulo'  => 'CIE',
-            'route'   => 'admin.cobrador.cierre',
-            'params'  => []
-          )
-        )
-      ]);
+    $str = "select sum(monto) monto from admin_pedido_pagos where id_pedido = $id_pedido and estado and id_tipo = 1 union select sum(monto) monto from admin_pedido_pagos where id_pedido = $id_pedido and estado and id_tipo = 2;";
+    // echo $str; exit();
+    $pagos = DB::select($str);
+    if (count($pagos) > 0) {
+      $edit = true;
     }
+
+    Config::set('extra_button', true);
+
+    return view('admin.cobrador.pedido_detallado', [
+      'menubar'   => $this->list_sidebar(),
+      'asignado'  => false,
+      'id_pedido' => $id_pedido,
+      'bdetalle'  => $bdetalle,
+      'mdetalle'  => $mdetalle,
+      'pagos'     => $pagos,
+      'pedido'    => $pedido,
+      'edit'      => $edit,
+      'eb_data'   => (object) array(
+        array(
+          'feather' => 'arrow-left',
+          'tooltip' => 'Regresar',
+          'route'   => 'admin.mesero.pedidos',
+          'params'  => []
+        )
+      )
+    ]);
+  }
+
+  public function detalle_pedido($id_pedido) {
+    $edit     = false;
+    $pedido = pedidosModel::where('id', $id_pedido)->get()[0];
+
+    $str = "select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 1 order by id desc;";
+    $bdetalle = DB::select($str);
+
+    $mdetalle = DB::select("select apd.id, apd.id_pedido, ap.nombre, apd.cantidad, apd.subtotal, ap.mixers from admin_pedidos_detalle apd left join admin_productos ap on (apd.id_producto = ap.id) where apd.estado and apd.id_pedido = $id_pedido and apd.contable = 0 order by id;");
+
+    $str = "select sum(monto) monto from admin_pedido_pagos where id_pedido = $id_pedido and estado and id_tipo = 1 union select sum(monto) monto from admin_pedido_pagos where id_pedido = $id_pedido and estado and id_tipo = 2;";
+    $pagos = DB::select($str);
+
+    return view('admin.cobrador.detalle_pedido', [
+      'menubar'   => $this->list_sidebar(),
+      'asignado'  => false,
+      'id_pedido' => $id_pedido,
+      'bdetalle'  => $bdetalle,
+      'pagos'     => $pagos,
+      'mdetalle'  => $mdetalle,
+      'pedido'    => $pedido,
+      'edit'      => $edit
+    ]);
   }
 
   public function enviar_pago($id_pedido) {
@@ -117,13 +111,9 @@ class cobradorController extends Controller
     $str = "select sum(subtotal) monto from admin_pedidos_detalle where contable and estado and aprobado = 0 and despachado = 0 and id_pedido = $id_pedido;";
     $pagado = DB::select($str)[0];
 
-    // echo '$pedido->id_tipo: ' . $pedido->id_tipo . '<br>';
-    // echo '$pedido->id_estado: ' . $pedido->id_estado . '<br>';
-    // echo '$pagado->monto: ' . $pagado->monto . '<br>';
-    // echo '$total: ' . $total . '<br>';
-    // exit();
+    // echo '$pedido->id_tipo: ' .al
 
-    if ($pedido->id_tipo == 1 && ($pedido->id_estado == 3 || $pedido->id_estado == 7) && $pagado->monto <= 0) {
+    if ($pedido->id_tipo == 1) {
       for ($id_tipo = 1; $id_tipo <= 2; $id_tipo++) {
         $monto = $_POST['pago-' . ($id_tipo == 1 ? 'efectivo' : 'tarjeta')];
         $model = pedidosPagosModel::create([
@@ -145,15 +135,8 @@ class cobradorController extends Controller
           ]);
         }
       }
-    } elseif ($pedido->id_tipo > 1 && $pedido->id_estado == 3 && $pagado->monto > 0) {
-      $str = "select * from admin_pedidos_detalle where id_pedido = $id_pedido and estado and aprobado = 0 and despachado = 0;";
-      $detalle = DB::select($str);
-      foreach($detalle as $item) {
-        DB::table('admin_pedidos_detalle')->where('id', $item->id)->update([
-          'aprobado' => 1
-        ]);
-      }
 
+    } elseif ($pedido->id_tipo ==  2) {
       for ($id_tipo = 1; $id_tipo <= 2; $id_tipo++) {
         $monto = $_POST['pago-' . ($id_tipo == 1 ? 'efectivo' : 'tarjeta')];
         $model = pedidosPagosModel::create([
@@ -163,36 +146,85 @@ class cobradorController extends Controller
           'monto'     => $monto
         ]);
 
+        $mesero = UserAdmin::where('id', Auth::id())->get()[0];
+
         $total += $monto;
         if ($model->save()) {
+          $str = "select * from admin_pedidos_detalle where id_pedido = $id_pedido and estado and aprobado = 0 and despachado = 0;";
+          $detalle = DB::select($str);
+          foreach($detalle as $item) {
+            DB::table('admin_pedidos_detalle')->where('id', $item->id)->update([
+              'aprobado' => 1
+            ]);
+          }
+
           DB::table('admin_pedidos')->where('id', $id_pedido)->update([
-            'id_estado' => 4,
+            'id_estado' => $mesero->roleUS == 10 ? ($mesero->roleUS == 10 ? 5 : 4) : 4,
             'monto'     => $total,
             'saldo'     => 0,
             'aprobar'   => 0
           ]);
         }
       }
-    } elseif ($pedido->id_tipo == 1 && $pedido->id_estado == 1 && $pagado->monto > 0) {
-      $str = "select * from admin_pedidos_detalle where id_pedido = $id_pedido and estado and aprobado = 0 and despachado = 0;";
-      $detalle = DB::select($str);
-      foreach($detalle as $item) {
-        DB::table('admin_pedidos_detalle')->where('id', $item->id)->update([
-          'aprobado' => 1
+    } elseif ($pedido->id_tipo == 3) {
+      $_POST['pagado'] = @$_POST['pagado'] ?: [];
+      if (count($_POST['pagado'])) {
+        foreach(@$_POST['pagado'] as $key => $value) {
+          DB::table('admin_pedidos_detalle')->where('id', $value)->where('pagado', 0)->update([
+            'pagado' => 1
+          ]);
+        }
+      }
+
+      for ($id_tipo = 1; $id_tipo <= 2; $id_tipo++) {
+        $monto = $_POST['pago-' . ($id_tipo == 1 ? 'efectivo' : 'tarjeta')];
+        $model = pedidosPagosModel::create([
+          'id_usuario' => Auth::id(),
+          'id_pedido' => $id_pedido,
+          'id_tipo'   => $id_tipo,
+          'monto'     => $monto,
         ]);
+
+        $total += $monto;
+      }
+
+      $str = "select sum(subtotal) monto from admin_pedidos_detalle where contable and estado and pagado = 1 and id_pedido = $id_pedido;";
+      $aprobados = DB::select($str)[0];
+
+      $str = "select sum(monto) monto from admin_pedido_pagos where id_pedido = $id_pedido and estado;";
+      $pagado = DB::select($str)[0];
+
+      // echo $pagado->monto; exit();
+
+      DB::table('admin_pedidos')->where('id', $id_pedido)->update([
+        'id_estado' => $pedido->id_estado,
+        'saldo'     => $pedido->monto - $pagado->monto,
+        'aprobar'   => 0
+      ]);
+    } elseif ($pedido->id_tipo == 6) {
+      for ($id_tipo = 1; $id_tipo <= 2; $id_tipo++) {
+        $monto = $_POST['pago-' . ($id_tipo == 1 ? 'efectivo' : 'tarjeta')];
+        $model = pedidosPagosModel::create([
+          'id_usuario' => Auth::id(),
+          'id_pedido' => $id_pedido,
+          'id_tipo'   => $id_tipo,
+          'monto'     => $monto,
+        ]);
+
+        $total += $monto;
       }
 
       DB::table('admin_pedidos')->where('id', $id_pedido)->update([
-        'id_estado' => 4,
-        'aprobar'   => 0
+        'id_estado' => 5,
+        'monto'     => $monto,
       ]);
     }
 
     $mesero = UserAdmin::where('id', Auth::id())->get()[0];
-    if ($mesero->roleUS == 3) {
-      return redirect('admin/pedido_para_despachar/' . $id_pedido);
+    if ($mesero->roleUS == 10 || $mesero->roleUS == 12) {
+      return redirect('admin/despachar/');
     } else {
-      return redirect('admin/pedidos_por_cobrar')->with('success','Guardado correctamente!');
+      return redirect('admin/pedidos');
     }
   }
 
@@ -201,7 +233,6 @@ class cobradorController extends Controller
     $fecha  = $fecha ?: (@$_POST['fecha'] ?: date('Y-m-d'));
     $cierre = inventarioCierreModel::where('fecha', $fecha)->where('id_cobrador', Auth::id())->get();
 
-    echo $action;
     if ($action) {
       $edit   = true;
 
@@ -243,8 +274,6 @@ class cobradorController extends Controller
       $action = 2;
     }
 
-    Config::set('extra_button', true);
-
     return view('admin.cobrador.cierre', [
       'menubar' => $this->list_sidebar(),
       'monto'   => @$monto[0]->monto + @$monto[1]->monto,
@@ -254,34 +283,20 @@ class cobradorController extends Controller
       'edit'    => $edit,
       'fecha'   => $fecha,
       'action'  => $action,
-      'cierre'  => $cierre,
-      'eb_data'   => (object) array(
-        array(
-          'titulo'  => 'DEF',
-          'route'   => 'admin.cobrador.descarga_efectivo',
-          'params'  => []
-        ),
-        array(
-          'titulo'  => 'PPC',
-          'route'   => 'admin.cobrador.pedidos_por_cobrar',
-          'params'  => []
-        )
-      )
+      'cierre'  => $cierre
     ]);
   }
 
-  public function descarga_efectivo($fecha = null) {
+  public function descarga_efectivo() {
     $action = @$_POST['action'];
-    $fecha  = $fecha ?: (@$_POST['fecha'] ?: date('Y-m-d'));
+    $fecha  = @$_POST['fecha'] ?: date('Y-m-d');
 
-    if (@$_POST['action']) {
-      dd($_POST);
-    }
+    // dd($_POST);
     if ($action) {
       $edit   = true;
 
       if ($action == 1) {
-        dd($_POST['descarga-efectivo']);
+        // dd($_POST['descarga-efectivo']);
         descargasEfectivoModel::where('fecha', $fecha)->where('id_cobrador', Auth::id())->delete();
         foreach($_POST['descarga-efectivo'] as $key => $value) {
           $model = descargasEfectivoModel::create([
@@ -293,7 +308,7 @@ class cobradorController extends Controller
         }
       }
 
-      return redirect('admin/descarga_efectivo/' . $fecha);
+      return redirect('admin/descarga_efectivo/');
     } else {
       $edit   = false;
       $action = 1;
@@ -308,28 +323,13 @@ class cobradorController extends Controller
 
 
     $action = @$_POST['action'] ?: 1;
-    // echo $action; exit();
-
-    Config::set('extra_button', true);
 
     return view('admin.cobrador.descarga_efectivo', [
       'menubar'   => $this->list_sidebar(),
       'descargas' => @$descargas,
       'edit'    => $edit,
       'fecha'   => $fecha,
-      'action'  => $action,
-      'eb_data'   => (object) array(
-        array(
-          'titulo'  => 'PPC',
-          'route'   => 'admin.cobrador.pedidos_por_cobrar',
-          'params'  => []
-        ),
-        array(
-          'titulo'  => 'CIE',
-          'route'   => 'admin.cobrador.cierre',
-          'params'  => []
-        )
-      )
+      'action'  => $action
     ]);
   }
 
@@ -351,5 +351,48 @@ class cobradorController extends Controller
     ]);
 
     return redirect('admin/pedidos_por_cobrar');
+  }
+
+  public function borrar_orden($id_pedido) {
+    DB::table('admin_pedidos_detalle')->where('id_pedido', $id_pedido)->update([
+      'estado' => 0
+    ]);
+
+    DB::table('admin_pedido_pagos')->where('id_pedido', $id_pedido)->update([
+      'estado' => 0
+    ]);
+
+    DB::table('admin_pedidos')->where('id', $id_pedido)->update([
+      'estado' => 0
+    ]);
+
+    return redirect('admin/pedidos');
+  }
+
+  public function lista_meseros($fecha = null) {
+    $fecha = $fecha ?: (@$_POST['fecha'] ?: date('Y-m-d'));
+    $edit  = false;
+
+    if (@$_POST['_token']) {
+      $actualizado = DB::table('admin_lista_meseros')->where('fecha', $_POST['fecha'])->delete();
+
+      listaMeserosModel::where('fecha', $fecha)->delete();
+      foreach($_POST['meseros'] as $key => $value) {
+        $model = listaMeserosModel::create([
+          'id_mesero' => $value,
+          'fecha'       => $fecha
+        ])->save();
+      }
+    }
+
+    $str = "select admin_users.*, admin_lista_meseros.id id_asignacion from admin_users left join admin_lista_meseros on (admin_users.id = admin_lista_meseros.id_mesero and fecha = '$fecha') where roleUS = 4 and statusUS order by name;";
+    $meseros = DB::select($str);
+
+    return view('admin.cobrador.lista_meseros', [
+      'menubar'       => $this->list_sidebar(),
+      'meseros'       => $meseros,
+      'fecha'         => $fecha,
+      'edit'          => $edit
+    ]);
   }
 }

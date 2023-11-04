@@ -8,7 +8,7 @@
         <form id="ingresos_form" method="POST" action="/admin/ingresos{{isset($data->id) ? '/'.$data->id : ''}}" onsubmit="event.preventDefault(); realizarAccion('ingresos_form')">
 
           <input type="hidden" name="action" value="1">
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               PAGOS DE MESEROS DEL {{$fecha_inicial}} AL {{$fecha_final}}
             </h3>
@@ -35,7 +35,7 @@
               </div>
 
               <div class="col-9" style="overflow-x: scroll;">
-                <div class="row" style="width: 175%;">
+                <div class="row" style="width: 200%;">
                   <div class="row">
                     @foreach ($arrDias as $key => $item)
                       <div class="col-1 border bg-dark" style="width: {{$col_width}}% !important;">
@@ -58,6 +58,7 @@
                     </div>
                   </div>
 
+                  @php $total_a_pagar = 0 @endphp
                   @foreach ($data as $key => $item)
                     <div class="row">
                       @foreach ($arrDias as $keyd => $itemd)
@@ -74,19 +75,29 @@
                       @foreach ($arrDias as $keyd => $itemd)
                         <div class="col-1 border" style="width: {{$col_width}}% !important;">
                           @php
-                            $pago = $item['vendio_' . $keyd]  * ($porcentaje_pago / 100);
-                            $pago = $item['asignado_' . $keyd] ? ($pago > $item['pago_minimo'] ? $pago : $item['pago_minimo']) : 0;
+                            $pago = (($item['vendio_' . $keyd]  * $porcentaje_pago) + $item['propina_' . $keyd]  * $porcentaje_propina);
+                            $pago = $pago > 0 ? ($pago > $item['pago_minimo'] ? $pago : $item['pago_minimo']) : 0 ;
                             $total += $pago;
                           @endphp
                           <label class="fs-3 pt-1"> Q. {{@number_format($pago, 2)}} </label>
                         </div>
                       @endforeach
 
+                      @php $total_a_pagar += $total; @endphp
                       <div class="col-1 border" style="width: {{$col_width}}% !important;">
                         <label class="fs-3 pt-1"> Q. {{number_format($total, 2)}} </label>
                       </div>
                     </div>
                   @endforeach
+
+                  <div class="row">
+                      <div class="col-1 border bg-dark text-end" style="width: {{$col_width * ($columnas - 1)}}% !important;">
+                        <label class="text-light py-1 fs-3"> Total a pagar:</label>
+                      </div>
+                      <div class="col-1 bordertext-end" style="width: {{$col_width}}% !important;">
+                        <label class="fs-3 pt-1"> Q. {{number_format($total_a_pagar, 2)}} </label>
+                      </div>
+                  </div>
                 </div>
               </div>
             </div>

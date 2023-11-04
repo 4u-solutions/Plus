@@ -6,7 +6,7 @@
     <div class="col-md-12">
       <div class="card">
           <input type="hidden" name="action" value="1">
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               PEDIDOS POR DESPACHAR
             </h3>

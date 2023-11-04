@@ -20,15 +20,13 @@ class RedirectIfAuthenticated
     public function handle(Request $request, Closure $next, ...$guards)
     {
         $guards = empty($guards) ? [null] : $guards;
-        // dd($guards);
-        // dd(Auth::guard()->getName());
 
         foreach ($guards as $guard) {
           switch ($guard) {
             case 'admin':
             // dd(Auth::guard($guard)->check());
               if (Auth::guard($guard)->check()) {
-                return redirect()->route('admin.dashboard');
+                return redirect()->route('admin.reservas.lista_invitados');
               }
 
             default:

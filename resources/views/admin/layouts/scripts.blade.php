@@ -2,11 +2,15 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="description" content="Vuexy admin is super flexible, powerful, clean &amp; modern responsive bootstrap 4 admin template with unlimited possibilities.">
-<meta name="keywords" content="admin template, Vuexy admin template, dashboard template, flat admin template, responsive admin template, web app">
+@if (@$evento->id_venue == 2)
+    <meta name="description" content="Revise la información del evento: (Mesa, jefe de area, coordinador y mesero), botón de INFO para menú, etc.">
+@else
+    <meta name="description" content="">
+@endif
+<meta name="keywords" content="">
 <meta name="author" content="PIXINVENT">
-<title>PLUS</title>
-<link rel="icon" href="{{ asset('img_admin/favicon.png') }}" type="image/x-icon"/>
+<title>Reservas THE MANOR</title>
+<link rel="icon" href="{{ asset('img_admin/favicon.jpg') }}" type="image/x-icon"/>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600" rel="stylesheet">
 
 <!-- BEGIN: Vendor CSS-->
@@ -44,3 +48,7 @@
 <!-- END: Custom CSS-->
 
 <script src="{{ asset('app-assets/vendors/js/jquery/jquery.min.js')}}"></script>
+
+<style type="text/css">
+    .vertical-layout.vertical-menu-modern.menu-collapsed .navbar.fixed-top, .vertical-layout.vertical-menu-modern.menu-collapsed .navbar.floating-nav { left: 0 !important; }
+</style>

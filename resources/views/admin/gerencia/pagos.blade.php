@@ -1,0 +1,151 @@
+{{-- @inject('helper', 'App\Http\Helpers\helpers') --}}
+@extends('admin.layouts.app')
+@section('main-content')
+@php $criti=[];@endphp
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <form id="ingresos_form" method="POST" action="{{ route('admin.gerencia.pagos') }}" onsubmit="event.preventDefault(); realizarAccion('ingresos_form')">
+          @csrf
+
+          <input type="hidden" name="action" value="1">
+          <div class="card-header bg-dark">
+            <h3 class="card-title">
+              PAGOS DE MESEROS DEL {{$fecha_inicial}} AL {{$fecha_final}}
+            </h3>
+
+            <h3 class="card-title">
+              <label class="d-inline-block mt-1">Fecha inicial:</label>
+              <input type="date" class="form-control d-inline-block w-auto" id="fecha_inicial" name="fecha_inicial" value="{{$fecha_inicial}}" />
+
+              <label class="d-inline-block ms-1 mt-1">Fecha final:</label>
+              <input type="date" class="form-control d-inline-block w-auto" id="fecha_final" name="fecha_final" value="{{$fecha_final}}" />
+
+              <button type="submit" class="btn btn-secondary fs-1 ms-1 mt-1">
+                <i style="height: 1.8rem; width: 1.8rem;" data-feather="search"></i>
+                Buscar
+              </button>
+            </h3>
+          </div>
+        </form>
+        <div class="card-body">
+          <div class="row" id="panel-alerta">
+            <div class="col-12 bg-warning p-2 text-center">
+              <h1>Gira el dispositivo para tener una mejor visualización</h1>
+            </div>
+          </div>
+          <div class="row" id="panel-principal">
+            <div class="col-3">
+              <div class="row">
+                <div class="col-12 border bg-dark">
+                  <label class="text-light py-1 fs-3"> Mesero <br><br></label>
+                </div>
+                @foreach ($data as $key => $item)
+                  <div class="col-12 border">
+                    <label class="fs-3 pt-1"> {{$item['nombre']}} </label>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+
+            <div class="col-9" style="overflow-x: scroll;">
+              <div class="row" style="width: {{100 + ($columnas * 12.5)}}%;">
+                <div class="row">
+                  @foreach ($arrDias as $key => $item)
+                    <div class="col-1 border bg-dark" style="width: {{$col_width}}% !important;">
+                      <label class="text-light py-1 fs-3"> Venta <br> {{$item}} {{$key}} </label>
+                    </div>
+                  @endforeach
+
+                  <div class="col-1 border bg-dark" style="width: {{$col_width}}% !important;">
+                    <label class="text-light py-1 fs-3"> Venta <br> Total </label>
+                  </div>
+
+                  @foreach ($arrDias as $key => $item)
+                    <div class="col-1 border bg-dark" style="width: {{$col_width}}% !important;">
+                      <label class="text-light py-1 fs-3"> Pago <br> {{$item}} {{$key}} </label>
+                    </div>
+                  @endforeach
+
+                  <div class="col-1 border bg-dark" style="width: {{$col_width}}% !important;">
+                    <label class="text-light py-1 fs-3"> Pago <br> Total </label>
+                  </div>
+                </div>
+
+                @php $total_a_pagar = 0 @endphp
+                @foreach ($data as $key => $item)
+                  <div class="row">
+                    @foreach ($arrDias as $keyd => $itemd)
+                      <div class="col-1 border" style="width: {{$col_width}}% !important;">
+                        <label class="fs-3 pt-1"> Q. {{@number_format($item['vendio_' . $keyd], 2)}} </label>
+                      </div>
+                    @endforeach
+
+                    <div class="col-1 border" style="width: {{$col_width}}% !important;">
+                      <label class="fs-3 pt-1"> Q. {{number_format($item['monto'], 2)}} </label>
+                    </div>
+
+                    @php $total = 0 @endphp
+                    @foreach ($arrDias as $keyd => $itemd)
+                      <div class="col-1 border" style="width: {{$col_width}}% !important;">
+                        @php
+                          $pago = (($item['vendio_' . $keyd]  * $porcentaje_pago) + $item['propina_' . $keyd]  * $porcentaje_propina);
+                          $pago = $pago > 0 ? ($pago > $item['pago_minimo'] ? $pago : $item['pago_minimo']) : ($item['lista_' . $keyd] ? $item['pago_minimo'] : 0) ;
+                          $total += $pago;
+                        @endphp
+                        <label class="fs-3 pt-1"> Q. {{@number_format($pago, 2)}} </label>
+                      </div>
+                    @endforeach
+
+                    @php $total_a_pagar += $total; @endphp
+                    <div class="col-1 border" style="width: {{$col_width}}% !important;">
+                      <label class="fs-3 pt-1"> Q. {{number_format($total, 2)}} </label>
+                    </div>
+                  </div>
+                @endforeach
+
+                <div class="row">
+                    <div class="col-1 border bg-dark text-end" style="width: {{$col_width * ($columnas - 1)}}% !important;">
+                      <label class="text-light py-1 fs-3"> Total a pagar:</label>
+                    </div>
+                    <div class="col-1 bordertext-end" style="width: {{$col_width}}% !important;">
+                      <label class="fs-3 pt-1"> Q. {{number_format($total_a_pagar, 2)}} </label>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    function realizarAccion(formulario){
+      $('#' + formulario).attr('onsubmit', '').submit();
+    }
+
+    $(document).ready(function(){
+      $(window).resize(function(){
+        ancho = $(window).width();
+        if (ancho < 425) {
+          $('div#panel-alerta').show();
+          $('div#panel-principal').hide();
+        } else {
+          $('div#panel-alerta').hide();
+          $('div#panel-principal').show();
+        }
+      })
+    });
+
+    var ancho = $(window).width();
+    if (ancho < 425) {
+      $('div#panel-alerta').show();
+      $('div#panel-principal').hide();
+    } else {
+      $('div#panel-alerta').hide();
+      $('div#panel-principal').show();
+    }
+  </script>
+  @component('admin.components.messagesForm')
+  @endcomponent
+@endsection

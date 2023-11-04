@@ -5,7 +5,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-        <div class="card-header">
+        <div class="card-header bg-dark">
           <h3 class="card-title">
             {{ strtoupper($tipo[0]->nombre) }}: AGREGAR BOTELLAS AL PEDIDO
           </h3>

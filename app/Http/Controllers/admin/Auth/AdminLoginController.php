@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin\Auth;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\MessageBag;
 use App\Http\Controllers\Controller;
 use App\adminModels\UserAdmin;
@@ -29,21 +30,27 @@ class AdminLoginController extends Controller
       if(Auth::guard('admin')->attempt($credentials,$request->remember)){
 
         $usuario = UserAdmin::where('id', Auth::guard('admin')->id())->get()[0];
-        if ($usuario->roleUS == 2) {
-          $ruta = route('admin.encargado.asignacion');
+        session('global_id_mesero', Auth::guard('admin')->id());
+
+        if ($usuario->roleUS == 1) {
+          $ruta = '/admin/users';
+        } elseif ($usuario->roleUS == 2) {
+          $ruta = route('admin.reservas.lista_invitados');
         } elseif ($usuario->roleUS == 3) {
-          $ruta = route('admin.bodega.inventario');
-        } elseif ($usuario->roleUS == 4 || $usuario->roleUS == 6) {
-          $ruta = route('admin.mesero.pedidos');
-        } elseif ($usuario->roleUS == 5) {
+          $ruta = route('admin.reservas.mesas');
+        } elseif ($usuario->roleUS == 4) {
           $ruta = route('admin.mesero.balance');
-        } elseif ($usuario->roleUS == 7) {
-          $ruta = route('admin.gerencia.resumen');
+        } elseif ($usuario->roleUS == 5) {
+          $ruta = route('admin.mesero.pedidos');
         } elseif ($usuario->roleUS == 8) {
-          $ruta = route('admin.encargado.cierre_total');
-        } else {
-          $ruta = route('admin.productos.index');
+          $ruta = '/admin/acreditaciones';
+        } elseif ($usuario->roleUS == 9) {
+          $ruta = '/admin/control_de_ingreso';
+        } elseif ($usuario->roleUS == 10) {
+          $ruta = route('admin.bodega.inventario');
         }
+
+        Session::put('global_id_mesero', 0);
 
         return redirect($ruta);
       }
@@ -57,7 +64,7 @@ class AdminLoginController extends Controller
     }
     public function logout(){
       Auth::guard('admin')->logout();
-      $estl = route('admin.dashboard');
+      $estl = route('admin.reservas.lista_eventos');
       return redirect($estl);
     }
 

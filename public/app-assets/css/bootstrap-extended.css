@@ -250,7 +250,7 @@ textarea.form-control-lg {
   opacity: 1; }
 
 .form-check-input:not(:disabled):checked {
-  box-shadow: 0 2px 4px 0 rgba(115, 103, 240, 0.4); }
+  box-shadow: 0 2px 4px 0 #4b4b4b; }
 
 .form-check-input:not(:disabled):indeterminate {
   background-size: 85%; }

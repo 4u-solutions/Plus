@@ -6,7 +6,7 @@
     <div class="col-md-12">
       <div class="card">
           <input type="hidden" name="action" value="1">
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               LISTADO DE PEDIDOS POR COBRAR
             </h3>
@@ -18,11 +18,7 @@
                   <div class="row align-items-center h-100 p-1">
                     <div class="col-12">
                       <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
-                        @if ($item->id_tipo == 1)
-                          <b>Cuenta: {{$item->tipo}}</b>
-                        @else
                           Cuenta: {{$item->tipo}}
-                        @endif
                       </label>
                       <label class="fs-3 text-{{$item->color == 'primary' ? 'light' : ($item->color == 'dark' ? 'light' : 'dark')}} d-block">
                         @if ($item->id_tipo == 1)
@@ -75,9 +71,9 @@
   </div>
 
   <script type="text/javascript">
-    setInterval(function(){
-      location.reload();  
-    }, 12500)
+    // setInterval(function(){
+    //   location.reload();  
+    // }, 12500)
 
     function aceptarCobro(id_pedido, id_tipo) {
       Swal.fire({

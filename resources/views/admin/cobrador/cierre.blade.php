@@ -13,7 +13,7 @@
           @endif
 
           <input type="hidden" name="action" value="{{$action}}" />
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               CIERRE DE CAJA DE COBRADOR
             </h3>

@@ -12,7 +12,7 @@
           @endif
 
           <input type="hidden" name="action" value="{{$action}}">
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               INGRESOS DE PRODUCTOS
             </h3>

@@ -33,9 +33,13 @@ class bodegaController extends Controller
     $dia_anterior = date('Y-m-d', strtotime("-1 day", strtotime($fecha)));
     $dia_despues  = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
 
-    $fecha_final  = date('Y-m-d H:i:s');
-    $fecha_inicio = date('Y-m-d H:i:s', strtotime("-12 hour ", strtotime($fecha_final)));
-    $str = "select distinct ap.id, ap.nombre, ap.id_tipo, ap.precio, if(ai.cantidad_final > 0, ai.cantidad_final + aii.ingreso, ai.cantidad_inicial + ai.recarga + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
+    if (strtotime(date('H:i:s')) < strtotime(config('global.horario_cierre'))) {
+      $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($dia_anterior));
+    } else {
+      $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha));
+    }
+    $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
+    $str = "select distinct ap.id, ap.nombre, ap.id_tipo, ap.precio, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.orden;";
     // echo $str; exit();
     $inventario = DB::select($str);
     
@@ -56,22 +60,26 @@ class bodegaController extends Controller
       'fecha'     => date('Y-m-d'),
       'eb_data'   => (object) array(
         array(
-          'titulo'  => 'TBA',
+          'feather' => 'upload',
           'route'   => 'admin.bodega.traslado',
+          'tooltip' => 'Traslado a barra',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'COR',
+          'feather' => 'gift',
+          'tooltip' => 'Cortesías',
           'route'   => 'admin.gerencia.agregar_cortesia',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'VEN',
+          'feather' => 'plus-circle',
+          'tooltip' => 'Venta',
           'route'   => 'admin.bodega.venta_bodega',
           'params'  => []
         ),
         array(
-          'titulo'  => 'DEF',
+          'feather' => 'dollar-sign',
+          'tooltip' => 'Descarga de efectivo',
           'route'   => 'admin.cobrador.descarga_efectivo',
           'params'  => []
         )
@@ -85,13 +93,19 @@ class bodegaController extends Controller
 
     $fecha = $fecha ?: date('Y-m-d');
 
-    $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
+    $str = "select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;";
+    $ultima_fecha_invent = @DB::select($str)[0]->fecha;
     $dia_anterior = date('Y-m-d', strtotime("-1 day", strtotime($fecha)));
     $dia_despues  = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
 
-    $fecha_final  = date('Y-m-d 06:00:00');
-    $fecha_inicio = date('Y-m-d 18:00:00', strtotime("-12 hour ", strtotime($fecha_final)));
-    $str = "select distinct ap.id, ap.nombre, ap.id_tipo, ap.precio, if(ai.cantidad_final > 0, ai.cantidad_final + aii.ingreso, ai.cantidad_inicial + ai.recarga + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.id;";
+    if (strtotime(date('H:i:s')) < strtotime(config('global.horario_cierre'))) {
+      $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($dia_anterior));
+    } else {
+      $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha));
+    }
+    $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha));
+    $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
+    $str = "select distinct ap.id, ap.nombre, ap.id_tipo, ap.precio, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)) inicial, ai2.cantidad_inicial, ai2.recarga, if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) vendido, ai2.cantidad_final from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.orden;";
     // echo $str; exit();
     $inventario = DB::select($str);
 
@@ -112,22 +126,26 @@ class bodegaController extends Controller
       'action'    => $action,
       'eb_data'   => (object) array(
         array(
-          'titulo'  => 'TBA',
+          'feather' => 'upload',
           'route'   => 'admin.bodega.traslado',
+          'tooltip' => 'Traslado a barra',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'COR',
+          'feather' => 'gift',
+          'tooltip' => 'Cortesías',
           'route'   => 'admin.gerencia.agregar_cortesia',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'VEN',
+          'feather' => 'plus-circle',
+          'tooltip' => 'Venta',
           'route'   => 'admin.bodega.venta_bodega',
           'params'  => []
         ),
         array(
-          'titulo'  => 'DEF',
+          'feather' => 'dollar-sign',
+          'tooltip' => 'Descarga de efectivo',
           'route'   => 'admin.cobrador.descarga_efectivo',
           'params'  => []
         )
@@ -182,22 +200,26 @@ class bodegaController extends Controller
       'fecha'   => date('Y-m-d'),
       'eb_data'   => array(
         array(
-          'titulo'  => 'TBA',
+          'feather' => 'upload',
           'route'   => 'admin.bodega.traslado',
+          'tooltip' => 'Traslado a barra',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'COR',
+          'feather' => 'gift',
+          'tooltip' => 'Cortesías',
           'route'   => 'admin.gerencia.agregar_cortesia',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'VEN',
+          'feather' => 'plus-circle',
+          'tooltip' => 'Venta',
           'route'   => 'admin.bodega.venta_bodega',
           'params'  => []
         ),
         array(
-          'titulo'  => 'DEF',
+          'feather' => 'dollar-sign',
+          'tooltip' => 'Descarga de efectivo',
           'route'   => 'admin.cobrador.descarga_efectivo',
           'params'  => []
         )
@@ -209,7 +231,7 @@ class bodegaController extends Controller
     $pedido = pedidosModel::where('id', $id_pedido)->get()[0];
 
     $mesero = UserAdmin::where('id', Auth::id())->get()[0];
-    if ($mesero->roleUS == 3) {
+    if ($mesero->roleUS == 10) {
       $str = "select * from admin_pedidos_detalle where id_pedido = $id_pedido and estado and aprobado = 0 and despachado = 0;";
       $detalle = DB::select($str);
       foreach($detalle as $item) {
@@ -231,27 +253,32 @@ class bodegaController extends Controller
       'detalle'   => $detalle,
       'eb_data'   => (object) array(
         array(
-          'titulo'  => 'REGRESAR',
+          'feather' => 'arrow-left',
+          'tooltip' => 'Regresar',
           'route'   => 'admin.bodega.despachar',
           'params'  => []
         ),
         array(
-          'titulo'  => 'TBA',
+          'feather' => 'upload',
           'route'   => 'admin.bodega.traslado',
+          'tooltip' => 'Traslado a barra',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'COR',
+          'feather' => 'gift',
+          'tooltip' => 'Cortesías',
           'route'   => 'admin.gerencia.agregar_cortesia',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'VEN',
+          'feather' => 'plus',
+          'tooltip' => 'Venta',
           'route'   => 'admin.bodega.venta_bodega',
           'params'  => []
         ),
         array(
-          'titulo'  => 'DEF',
+          'feather' => 'dollar-sign',
+          'tooltip' => 'Descarga de efectivo',
           'route'   => 'admin.cobrador.descarga_efectivo',
           'params'  => []
         )
@@ -323,7 +350,7 @@ class bodegaController extends Controller
     $ultima_fecha = DB::select($str);
     $ultima_fecha = count($ultima_fecha) > 0 ? $ultima_fecha[0]->fecha : '';
 
-    $str = "select distinct ap.id, ap.nombre, ai.cantidad_final final, aii.ingreso, (ai.cantidad_final + aii.ingreso) final_total, ap.id_tipo from admin_productos ap left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$fecha') left join (select id_producto, cantidad_inicial, cantidad_final, recarga, fecha from admin_inventario) ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha') where ap.estado order by ap.id_tipo, ap.id;";
+    $str = "select distinct ap.id, ap.nombre, ai.cantidad_final final, aii.ingreso, (ai.cantidad_final + aii.ingreso) final_total, ap.id_tipo from admin_productos ap left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$fecha') left join (select id_producto, cantidad_inicial, cantidad_final, recarga, fecha from admin_inventario) ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha') where ap.estado order by ap.id_tipo, ap.orden;";
     // echo $str; exit();
     $ingreso = DB::select($str);
 
@@ -371,17 +398,17 @@ class bodegaController extends Controller
   }
 
   public function traslado($id_pedido = 0) {
-    if (strtotime('06:00:00') > strtotime(date('H:i:s'))) {
+    if (strtotime(config('global.horario_cierre')) > strtotime(date('H:i:s'))) {
       $fecha = date('Y-m-d', strtotime("-1 day", strtotime(date('Y-m-d'))));
     } else {
       $fecha = date('Y-m-d');
     }
 
     $dia_despues = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
-    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, (if (ai.cantidad_inicial is null, 0, ai.cantidad_inicial) + if (ai.recarga is null, 0, ai.recarga)) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock,  producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo <> 8 order by mas_vendido desc;";
+    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, (if (ai.cantidad_inicial is null, 0, ai.cantidad_inicial) + if (ai.recarga is null, 0, ai.recarga)) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock,  producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo <> 8 order by mas_vendido desc;";
     $productos = DB::select($str);
 
-    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, (if (ai.cantidad_inicial is null, 0, ai.cantidad_inicial) + if (ai.recarga is null, 0, ai.recarga)) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock,  producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha 18:00:00' and '$dia_despues 06:00:00' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo = 8 order by mas_vendido desc;";
+    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, (if (ai.cantidad_inicial is null, 0, ai.cantidad_inicial) + if (ai.recarga is null, 0, ai.recarga)) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock,  producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$fecha') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo = 8 order by mas_vendido desc;";
     $mixers = DB::select($str);
 
     $data = [];
@@ -407,22 +434,26 @@ class bodegaController extends Controller
       'pedido'    => $pedido,
       'eb_data'   => array(
         array(
-          'titulo'  => 'TBA',
+          'feather' => 'upload',
           'route'   => 'admin.bodega.traslado',
+          'tooltip' => 'Traslado a barra',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'COR',
+          'feather' => 'gift',
+          'tooltip' => 'Cortesías',
           'route'   => 'admin.gerencia.agregar_cortesia',
           'params'  => ['id_pedido' => 0]
         ),
         array(
-          'titulo'  => 'VEN',
+          'feather' => 'plus-circle',
+          'tooltip' => 'Venta',
           'route'   => 'admin.bodega.venta_bodega',
           'params'  => []
         ),
         array(
-          'titulo'  => 'DEF',
+          'feather' => 'dollar-sign',
+          'tooltip' => 'Descarga de efectivo',
           'route'   => 'admin.cobrador.descarga_efectivo',
           'params'  => []
         )

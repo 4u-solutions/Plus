@@ -17,6 +17,8 @@
 <script src="{{asset('js/admin/js_own/functions.js')}}"></script>
 <script src="{{asset('js/admin/js_own/validador.js')}}"></script>
 
+  <script src="{{asset('js/jquery.creditCardValidator.js')}}"></script>
+
 
 
 <!-- BEGIN: Page JS-->
@@ -39,8 +41,12 @@
    <script src="{{ asset('app-assets/js/scripts/ui/ui-feather.js')}}"></script>
    <!-- END: Page JS-->
 
+   
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+
 <script>
-    $(window).on('load', function() {
+    // $(window).on('load', function() {
+    $(document).ready(function(){
         if (feather) {
             feather.replace({
                 width: 14,

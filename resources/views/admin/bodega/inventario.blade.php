@@ -12,7 +12,7 @@
           @endif
 
           <input type="hidden" name="action" value="{{$action}}">
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               INVENTARIO DE PRODUCTOS
             </h3>
@@ -103,7 +103,7 @@
                     <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="d-inline-block form-control my-1 text-center" id="actual_{{$item->id}}" name="actual_{{$item->id}}" type="text" value="{{($actual) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 borde {{$final == 0 ? 'bg-danger text-light' : ''}}r">
+                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       <input class="d-inline-block form-control my-1 text-center" id="ventas_{{$item->id}}" name="ventas_{{$item->id}}" type="text" value="{{($item->vendido) ?: 0}}" disabled />
                     </div>
                     <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
@@ -114,6 +114,8 @@
                     </div>
                     <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
                       @php @$subtotal = ((isset($item->cantidad_final) ? $item->cantidad_final : (isset($final) ? $final : $actual)) * $item->precio) ?: 0; @endphp
+
+                      @php @$subtotal = $item->cantidad_final ? (($item->cantidad_inicial - $item->cantidad_final) * $item->precio) : 0; @endphp
                       @php @$total    += $subtotal; @endphp
                       <input class="d-inline-block form-control my-1 text-center" id="tot_precio_{{$item->id}}" name="tot_precio_{{$item->id}}" type="text" value="Q. {{number_format($subtotal)}}" disabled />
                     </div>

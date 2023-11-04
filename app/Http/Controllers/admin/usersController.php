@@ -16,7 +16,6 @@ class usersController extends Controller
     $this->middleware('auth:admin');
   }
   public function index(){
-    $count = $this->get_country();
     $roleUsers = [];
     $listof=UserAdmin::get();
     $usersAd=roles::orderBy('nameRole')->get();

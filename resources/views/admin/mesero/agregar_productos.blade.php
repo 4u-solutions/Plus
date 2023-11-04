@@ -4,21 +4,15 @@
 @php $criti=[];@endphp
 
   <div class="row">
-    <div class="col-12 mb-1" id="panel-alerta">
-      <div class="card-body py-0 px-1 m-0">
-        <div class="row">
-          <div class="col-12 bg-warning p-2 text-center">
-            <h1>Gira el dispositivo para tener una mejor visualización</h1>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="col-sm-6" id="panel-principal">
       <div class="card">
-        <div class="card-header">
+        <div class="card-header bg-dark">
           <h3 class="card-title">
             SELECCIONAR PRODUCTOS
+          </h3>
+
+          <h3 class="card-title w-100">
+              <input class="form-control w-100 mt-1 fs-3" id="busqueda" type="text" value="" placeholder="Buscar produto" />
           </h3>
         </div>
         <div class="card-body">
@@ -26,11 +20,13 @@
             @foreach ($data as $item)
               @if (($pedido[0]->saldo >= $item->precio && $pedido[0]->id_tipo == 1) || $pedido[0]->id_tipo >= 2)
                 @if ($item->stock > 0)
-                  <div class="col-6 border bg-{{$item->color}} shadow rounded">
-                    <a href="#" title="{{$item->nombre}}" rel="{{$item->mixers}}" onclick="agregarBotellas({{$id_pedido}}, {{$item->id}}, 1, {{$item->precio}})">
+                  <div class="col-6 border bg-{{$item->color}} shadow rounded" rel="{{$item->nombre}}" id="producto_contenedor">
+                    <a href="#" title="{{$item->nombre}}" rel="{{$item->mixers}}" onclick="agregarBotellas({{$id_pedido}}, {{$item->id}}, 1, {{$item->precio}}, '{{$item->nombre}}')" class="d-block">
+                      <div class="w-100 d-block text-center pt-1" style="height: 100px;">
+                        <img src="{{asset('botellas/' . $item->id . '.png')}}" class="h-100" />
+                      </div>
                       <div class="row align-items-center h-100 py-1 px-0 text-center">
-                        <label class="fs-2 text-{{$item->color == 'light' ? 'dark' : ($item->color == 'white' ? 'dark' : 'light')}}">{{$item->nombre}}</label>
-                        <label class="fs-2 text-{{$item->color == 'light' ? 'dark' : ($item->color == 'white' ? 'dark' : 'light')}}">Q. {{ number_format($item->precio, 2) }}</label>
+                        <label class="fs-3 text-{{$item->color == 'light' ? 'dark' : ($item->color == 'white' ? 'dark' : 'light')}}">{{$item->nombre}}: Q. {{ number_format($item->precio, 2) }}</label>
                       </div>
                     </a>
                   </div>
@@ -42,7 +38,8 @@
       </div>
     </div>
 
-    <div class="col-sm-6 panel-prinpal-izquierdo" id="panel-principal" style="position: fixed; width: 47%; top: 25%; right: 1%;">
+    <!-- <div class="col-sm-6 panel-prinpal-izquierdo" id="panel-principal" style="position: fixed; width: 47%; right: 1%;"> -->
+    <div class="col-sm-6">
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">
@@ -90,8 +87,8 @@
                 </div>
                 <div class="row px-1 border-bottom pb-1" id="mixers-gratis" style="display: none;">
                   @foreach ($mixers as $item)
-                    <div class="col-6 border bg-dark shadow rounded text-center mt-1 p-1">
-                      <a href="#" class="text-light fs-2" title="{{$item->nombre}}" rel="{{$item->mixers}}" onclick="agregarBotellas({{$id_pedido}}, {{$item->id}}, {{$item->id_tipo == 8 ? '0' : '1'}}, {{$item->precio}})">
+                    <div class="col-6 border bg-dark shadow rounded text-center mt-1 p-1" onclick="agregarBotellas({{$id_pedido}}, {{$item->id}}, {{$item->id_tipo == 8 ? '0' : '1'}}, '{{$item->nombre}}')" style="cursor: pointer;">
+                      <a href="#" class="text-light fs-2" title="{{$item->nombre}}" rel="{{$item->mixers}}">
                         {{$item->nombre}}
                       </a>
                     </div>
@@ -137,7 +134,8 @@
     var prod_asoc   = '{"24":4}';
     $('#total-mixers').html(mixerGratis);
 
-    function agregarBotellas(id_pedido, id_producto, contable, precio) {
+    function agregarBotellas(id_pedido, id_producto, contable, precio, nombre_producto) {
+      console.log(nombre_producto)
       @if ($pedido[0]->id_tipo == 1)
         var saldo = parseFloat($('#saldo').html().replace(/,/g,''));
         if (saldo >= precio || mixerGratis > 0)  {
@@ -151,7 +149,7 @@
           confirmButtonText: 'Agregar',
           cancelButtonText: 'Cancelar',
           title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
-                    <h1 class="modal-title" id="verifyModalContent_title">AGREGAR PRODUCTO</h1>
+                    <h1 class="modal-title" id="verifyModalContent_title">AGREGAR ` + nombre_producto + `</h1>
                 </div>`,
           html:`
             <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
@@ -196,7 +194,7 @@
         dataType: "JSON",
         success: function(respuesta){
           html = `
-            <div class="detalle_` + id_detalle + ` row mt-1 border-bottom pb-1" id="detalle_` + respuesta.id_det + `">
+            <div class="detalle_` + id_detalle + ` row mt-1 border-bottom pb-1" id="detalle_` + respuesta.id_det + `" data-id="` + respuesta.id_det + `">
               <div class="col-6 text-start pe-0">
                 <label class="fs-5 d-block">` + respuesta.nombre + `</label>
                 <label class="fs-5 d-block">Cantidad: ` + respuesta.cantidad + `</label>
@@ -307,7 +305,12 @@
             if (respuesta) {
               $('#detalle_' + id_detalle).slideUp(function(){
                 $(this).remove();
-                $('div.detalle_' + id_detalle).remove();
+                if ($('div.detalle_' + id_detalle).length) {
+                  var childIndex = $('div.detalle_' + id_detalle).attr('data-id');
+                  setTimeout(function(){
+                    ejecutarBorrar(childIndex, 0, 0, 0)
+                  }, 50)
+                }
 
                 var totales = parseFloat($('#total').html().replace(/,/g,''));
 
@@ -360,6 +363,19 @@
         return false;
       });
 
+      $('#busqueda').keyup(function(){
+        var valor_busqueda = $(this).val();
+        valor_busqueda = valor_busqueda.toLowerCase();
+
+        if (valor_busqueda != '') {
+          $('div#producto_contenedor').hide();
+        } else {
+          $('div#producto_contenedor').show();
+        }
+
+         $("div#producto_contenedor[rel*='" + valor_busqueda + "']").show();
+      })
+
       $('#btn-mixers-gratis').click(function(){
         $('#mixers-gratis').toggle();
       })
@@ -382,32 +398,13 @@
       } else {
         $('div#boton-cobrar').removeClass('d-none').addClass('d-block');
       }
-
-      $(window).resize(function(){
-        ancho = $(window).width();
-        if (ancho < 425) {
-          $('div#panel-alerta').show();
-          $('div#panel-principal').hide();
-        } else {
-          $('div#panel-alerta').hide();
-          $('div#panel-principal').show();
-        }
-      })
     })
 
-    var ancho = $(window).width();
-    var alto  = $('body').innerHeight();
-    var panel = $('.panel-prinpal-izquierdo').position()
-    alto = alto - (panel.top + 25 + ($('.panel-prinpal-izquierdo .card-header').innerHeight()));
-    $('.panel-prinpal-izquierdo .card-body').css('height', alto + 'px')
-
-    if (ancho < 550) {
-      $('div#panel-alerta').show();
-      $('div#panel-principal').hide();
-    } else {
-      $('div#panel-alerta').hide();
-      $('div#panel-principal').show();
-    }
+    // var ancho = $(window).width();
+    // var alto  = $('body').innerHeight();
+    // var panel = $('.panel-prinpal-izquierdo').position()
+    // alto = alto - (panel.top + 25 + ($('.panel-prinpal-izquierdo .card-header').innerHeight()));
+    // $('.panel-prinpal-izquierdo .card-body').css('height', alto + 'px')
   </script>
   @component('admin.components.messagesForm')
   @endcomponent

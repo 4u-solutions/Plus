@@ -6,22 +6,16 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-        <form id="enviar_pago_form" method="POST" action="/admin/descarga_efectivo/{{isset($data->id) ? '/'.$data->id : ''}}" onsubmit="event.preventDefault(); realizarAccion('enviar_pago_form')">
+        <form id="enviar_pago_form" method="POST" action="/admin/descarga_efectivo" onsubmit="event.preventDefault(); realizarAccion('enviar_pago_form')">
           @csrf
           @if($edit)
               @method('PUT')
           @endif
 
           <input type="hidden" name="action" value="{{$action}}" />
-          <div class="card-header">
+          <div class="card-header bg-dark">
             <h3 class="card-title">
               DESCARGA DE EFECTIVO
-            </h3>
-
-            <h3 class="card-title">
-              <label class="d-inline-block mx-1">Fecha:</label>
-              <input type="date" class="form-control d-inline-block w-auto" id="fecha" name="fecha" value="{{$fecha}}" onchange="cambioDeFecha(this.value);" />
-              </a>
             </h3>
           </div>
           <div class="card-body">
@@ -49,7 +43,7 @@
 
                 <div class="row mb-1">
                   <div class="col-12">
-                    <label class="fs-1 d-block border-top" >Total descarga de efectivo: <b>Q. <span id="descarga-total">{{number_format($total, 2)}}</span></b></label>
+                    <label class="fs-1 d-block border-top" >Total descarga de efectivo: <br><b>Q. <span id="descarga-total">{{number_format($total, 2)}}</span></b></label>
                   </div>
                 </div>
 

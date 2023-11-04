@@ -6,7 +6,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-        <div class="card-header">
+        <div class="card-header bg-dark">
           <h3 class="card-title">
             CIERRE TOTAL DE LA NOCHE
           </h3>
