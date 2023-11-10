@@ -243,7 +243,7 @@ class reservasController extends Controller
       // $id_evento = 11;
     // }
 
-    $str  = "select admin_eventos_mesas.*, admin_eventos_venues_ubicaciones.nombre area, admin_eventos.pagado, admin_eventos.id id_evento, admin_eventos.nombre evento, if (invitados.invitados is null, 0, invitados.invitados) invitados, if(mujeres.mujeres is null, 0, mujeres.mujeres) mujeres, if (hombres.hombres is null, 0, hombres.hombres) hombres, if (pagados.pagados is null, 0, pagados.pagados) pagados, if (duplicados.duplicados is null, 0 , duplicados.duplicados) duplicados, meseros.name mesero, cobradores.name cobrador, jefes.name jefe from admin_eventos_mesas left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento and admin_eventos.estado) left join admin_eventos_venues_ubicaciones on (admin_eventos_venues_ubicaciones.id = admin_eventos_mesas.id_area and admin_eventos_venues_ubicaciones.estado) left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (admin_eventos_mesas.id = invitados.id_mesa) left join (select count(*) mujeres, id_mesa from admin_eventos_mesas_invitados where sexo = 0 and estado group by id_mesa) mujeres on (admin_eventos_mesas.id = mujeres.id_mesa) left join (select count(*) hombres, id_mesa from admin_eventos_mesas_invitados where sexo = 1 and estado group by id_mesa) hombres on (admin_eventos_mesas.id = hombres.id_mesa) left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (admin_eventos_mesas.id = pagados.id_mesa) left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (admin_eventos_mesas.id = duplicados.id_mesa) left join admin_users meseros on (meseros.id = admin_eventos_mesas.id_mesero) left join admin_users cobradores on (cobradores.id = admin_eventos_mesas.id_cobrador_1) left join admin_users jefes on (jefes.id = admin_eventos_mesas.id_jefe_1) where admin_eventos.id = $id_evento  and admin_eventos_mesas.estado order by admin_eventos_mesas.nombre;";
+    $str  = "select admin_eventos_mesas.*, admin_eventos_venues_ubicaciones.nombre area, admin_eventos.pagado, admin_eventos.id id_evento, admin_eventos.nombre evento, if (invitados.invitados is null, 0, invitados.invitados) invitados, if(mujeres.mujeres is null, 0, mujeres.mujeres) mujeres, if (hombres.hombres is null, 0, hombres.hombres) hombres, if (pagados.pagados is null, 0, pagados.pagados) pagados, if (duplicados.duplicados is null, 0 , duplicados.duplicados) duplicados, meseros.name mesero, cobradores.name cobrador, jefes.name jefe from admin_eventos_mesas left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento and admin_eventos.estado) left join admin_eventos_venues_ubicaciones on (admin_eventos_venues_ubicaciones.id = admin_eventos_mesas.id_area and admin_eventos_venues_ubicaciones.estado) left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (admin_eventos_mesas.id = invitados.id_mesa) left join (select count(mesas_invitados.id) mujeres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where invitados.sexo = 0 and invitados.estado and mesas_invitados.estado group by id_mesa) mujeres on (admin_eventos_mesas.id = mujeres.id_mesa) left join (select count(mesas_invitados.id) hombres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where invitados.sexo = 1 and invitados.estado and mesas_invitados.estado group by id_mesa) hombres on (admin_eventos_mesas.id = hombres.id_mesa) left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (admin_eventos_mesas.id = pagados.id_mesa) left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (admin_eventos_mesas.id = duplicados.id_mesa) left join admin_users meseros on (meseros.id = admin_eventos_mesas.id_mesero) left join admin_users cobradores on (cobradores.id = admin_eventos_mesas.id_cobrador_1) left join admin_users jefes on (jefes.id = admin_eventos_mesas.id_jefe_1) where admin_eventos.id = $id_evento  and admin_eventos_mesas.estado order by admin_eventos_mesas.nombre;";
     $data = DB::select($str);
     $edit = false;
 
@@ -254,6 +254,14 @@ class reservasController extends Controller
 
     foreach($data as $key => $item) {
       @$data[$key]->nombre_sin_acento = $this->eliminar_acentos($item->nombre);
+
+      $str  = "select admin_eventos_mesas_lideres.id, admin_users.name, admin_users.usersys, admin_users.id id_lider from admin_eventos_mesas_lideres left join admin_users on (admin_eventos_mesas_lideres.id_lider = admin_users.id) where admin_users.statusUs and admin_eventos_mesas_lideres.id_mesa = '" . $item->id . "';";
+      $mesas_lideres = DB::select($str);
+      // $array_ml = array();
+      // foreach($mesas_lideres as $key_ml => $item_ml) {
+      //   $array_ml[] => array('id' => $item_ml->id_lider, 'nombre' => $item_ml)
+      // }
+      // dd($mesas_lideres);
     }
 
     foreach($data as $key => $item) {
@@ -263,28 +271,14 @@ class reservasController extends Controller
       $data[$key]->usersys = @$usersys;
     }
 
-    DB::table('admin_eventos_mesas_invitados')->update([
-      'repetido' => 0
-    ]);
-    $str = "select count(nombre) cantidad, nombre, id from admin_eventos_mesas_invitados where estado group by nombre having cantidad > 1;";
-    $duplicados = DB::select($str);
-    foreach($duplicados as $key => $item) {
-      $str = "select id from admin_eventos_mesas_invitados where nombre = '" . $item->nombre . "';";
-      $repetidos = DB::select($str);
-      foreach($repetidos as $key2 => $item2) {
-        DB::table('admin_eventos_mesas_invitados')->where('id', $item2->id)->update([
-          'repetido' => 1
-        ]);
-      }
-    }
-
     return view('admin.reservas.mesas', [
       'menubar' => $this->list_sidebar(),
       'data'    => $data,
       'edit'    => $edit,
       'eventos'       => $eventos,
       'array_mes'     => $array_mes,
-      'id_evento' => $id_evento
+      'id_evento' => $id_evento,
+      'mesas_lideres' => @$mesas_lideres
     ]);
   }
 
@@ -393,6 +387,18 @@ class reservasController extends Controller
     );
   }
 
+  public function borrar_reservacion($id_mesa = null) {
+    DB::table('admin_eventos_mesas')->where('id', $id_mesa)->update([
+      'estado' => 0
+    ]);
+
+    return json_encode(
+      array(
+        'id' => $id_mesa
+      )
+    );
+  }
+
   public function asignar_mesa_lider($id_mesa = 0, $id_sector = 0, $no_mesa = 0) {
     $data = eventosVenuesSectoresMesasModel::create([
       'id_mesa'   => $id_mesa,
@@ -435,7 +441,7 @@ class reservasController extends Controller
   }
 
 
-  public function agregar_lider_a_mesa($id_mesa = 0, $id_lider = 0){
+  public function agregar_lider_a_mesa($id_mesa = 0, $id_lider = 0, $accion = 0){
     $evento = eventosMesasLideresModel::create([
       'id_mesa'  => $id_mesa,
       'id_lider' => $id_lider
@@ -445,11 +451,20 @@ class reservasController extends Controller
     $str = "select * from admin_users where id = $id_lider;";
     $lider = DB::select($str)[0];
 
-    $evento = eventosMesasInvitadosModel::create([
-      'id_mesa'  => $id_mesa,
-      'nombre'   => $lider->name,
-      'sexo'     => $lider->sexo,
-      'id_lider' => $id_lider
+    if ($accion) {
+      $id_invitado = DB::table('admin_eventos_invitados')->insertGetId([
+        'nombre'   => $lider->name,
+        'sexo'     => $lider->sexo,
+        'id_lider' => $lider->id
+      ]);
+    } else {
+      $str = "select * from admin_eventos_invitados where id_lider = " . $lider->id . ";";
+      $id_invitado = DB::select($str)[0]->id;
+    }
+
+    $id_invitado = DB::table('admin_eventos_mesas_invitados')->insertGetId([
+      'id_mesa'     => $id_mesa,
+      'id_invitado' => $id_invitado
     ]);
 
     return json_encode(
@@ -472,14 +487,12 @@ class reservasController extends Controller
     );
   }
 
-  public function borrar_lider_de_mesa($id = null){
-    DB::table('admin_eventos_mesas_lideres')->where('id', $id)->update([
-      'estado' => 0
-    ]);
+  public function borrar_lider_de_mesa($id_lider = 0, $id_mesa = 0){
+    eventosMesasLideresModel::where('id_lider', $id_lider)->where('id_mesa', $id_mesa)->delete();
 
     return json_encode(
       array(
-        'id' => $id
+        'id' => $id_lider
       )
     );
   }
@@ -493,7 +506,7 @@ class reservasController extends Controller
     $id_mesa = DB::select($str)[0]->id_mesa;
 
     for($i = 0; $i <= 1; $i++) {
-      $str = "select * from admin_eventos_mesas_invitados where estado and sexo = $i and id_mesa = $id_mesa order by nombre;";
+      $str = "select mesas_invitados.* from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and sexo = $i and id_mesa = $id_mesa order by nombre;";
       $listado = DB::select($str);
       $fila = 1;
       foreach($listado as $key2 => $item2) {
@@ -591,22 +604,22 @@ class reservasController extends Controller
     $str  = "select count(id) no_pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and pagado = 0;";
     $total_no_pagados = DB::select($str)[0]->no_pagados; 
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 0;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 0;";
     $total_mujeres = DB::select($str)[0]->pagados; 
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 1;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 1;";
     $total_hombres = DB::select($str)[0]->pagados;
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 0 and pagado;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 0 and pagado;";
     $total_mujeres_pagado = DB::select($str)[0]->pagados; 
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 1 and pagado;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 1 and pagado;";
     $total_hombres_pagado = DB::select($str)[0]->pagados; 
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 0 and pagado = 0;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 0 and pagado = 0;";
     $total_mujeres_no_pagado = DB::select($str)[0]->pagados; 
 
-    $str  = "select count(id) pagados from admin_eventos_mesas_invitados where estado and id_mesa = $id_mesa and sexo = 1 and pagado = 0;";
+    $str  = "select count(mesas_invitados.id) pagados from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and sexo = 1 and pagado = 0;";
     $total_hombres_no_pagado = DB::select($str)[0]->pagados;
 
     $str = "select colaboradores.* from admin_eventos_venues_colaboradores venuesc left join admin_users colaboradores on (venuesc.id_colaborador = colaboradores.id) where id_venue = " . $evento->id_venue . " and roleUS = 4 and statusUs order by es_plus desc, prioridad, name;";
@@ -639,11 +652,10 @@ class reservasController extends Controller
     DB::table('admin_eventos_mesas_invitados')->update([
       'repetido' => 0
     ]);
-    $str = "select count(admin_eventos_mesas_invitados.nombre) cantidad, admin_eventos_mesas_invitados.nombre, admin_eventos_mesas_invitados.id, admin_eventos_mesas.id_evento, admin_eventos_mesas_invitados.id_mesa from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas_invitados.id_mesa = admin_eventos_mesas.id) where admin_eventos_mesas_invitados.estado and admin_eventos_mesas.estado and admin_eventos_mesas.id_evento = " . $mesa->id_evento . " group by admin_eventos_mesas_invitados.nombre,admin_eventos_mesas.id_evento and admin_eventos_mesas.id_area = 1 having cantidad > 1 order by nombre;";
+    $str = "select count(admin_eventos_mesas_invitados.id_invitado) cantidad, admin_eventos_mesas_invitados.id_invitado, admin_eventos_mesas_invitados.id, admin_eventos_mesas.id_evento, admin_eventos_mesas_invitados.id_mesa, admin_eventos_invitados.nombre from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas_invitados.id_mesa = admin_eventos_mesas.id) left join admin_eventos_invitados on (admin_eventos_mesas_invitados.id_invitado = admin_eventos_invitados.id) where admin_eventos_mesas_invitados.estado and admin_eventos_mesas.estado and admin_eventos_mesas.id_evento = " . $mesa->id_evento . " group by admin_eventos_mesas_invitados.id_invitado, admin_eventos_mesas.id_evento having cantidad > 1 order by nombre;";
     $duplicados = DB::select($str);
     foreach($duplicados as $key => $item) {
-      // $str = "select id from admin_eventos_mesas_invitados where nombre = '" . $item->nombre . "' and estado;";
-      $str = "select invitados.* from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) where invitados.nombre = '" . $item->nombre . "' and invitados.estado and mesas.estado and mesas.id_evento = " . $mesa->id_evento . ";";
+      $str = "select admin_eventos_mesas_invitados.id from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas.id = admin_eventos_mesas_invitados.id_mesa) where admin_eventos_mesas.id_evento = " . $mesa->id_evento . " and id_invitado = '" . $item->id_invitado . "';";
       $repetidos = DB::select($str);
       foreach($repetidos as $key2 => $item2) {
         DB::table('admin_eventos_mesas_invitados')->where('id', $item2->id)->update([
@@ -653,7 +665,7 @@ class reservasController extends Controller
     }
 
     for($i = 0; $i <= 1; $i++) {
-      $str = "select * from admin_eventos_mesas_invitados where estado and sexo = $i and id_mesa = $id_mesa " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
+      $str = "select mesas_invitados.* from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and sexo = $i and id_mesa = $id_mesa " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
       $listado = DB::select($str);
       $fila = 1;
       foreach($listado as $key2 => $item2) {
@@ -665,16 +677,16 @@ class reservasController extends Controller
       }
     }
 
+    $mesa->pax = $mesa->pax ?: 20;
     for($i = 1; $i <= ceil(($mesa->listas_cerradas ? 100 : $mesa->pax) * 0.6); $i++) {
       @$data_m[$i . '-' . 0] = 0;
     }
 
-    $str  = "select * from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 0 and estado " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
+    $str  = "select mesas_invitados.*, invitados.nombre, invitados.sexo, invitados.telefono, invitados.correo, invitados.fecha_nacimiento from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where id_mesa = $id_mesa and sexo = 0 and mesas_invitados.estado " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
     $invitados = DB::select($str);
 
     $data = array();
     foreach($invitados as $key => $item) {
-      // $item->nombre = str_replace(' ', '<br>', $item->nombre);
       @$data_m[$item->fila . '-' . $item->sexo] = $item;
     }
 
@@ -682,13 +694,11 @@ class reservasController extends Controller
       @$data_h[$i . '-' . 1] = 0;
     }
 
-
-    $str  = "select * from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 1 and estado " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
+    $str  = "select mesas_invitados.*, invitados.nombre, invitados.sexo, invitados.telefono, invitados.correo, invitados.fecha_nacimiento from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where id_mesa = $id_mesa and sexo = 1 and mesas_invitados.estado " . ($mesa->listas_cerradas ? ' and (pagado or cortesia)' : '') . " order by nombre;";
     $invitados = DB::select($str);
 
     $data = array();
     foreach($invitados as $key => $item) {
-      // $item->nombre = str_replace(' ', '<br>', $item->nombre);
       @$data_h[$item->fila . '-' . $item->sexo] = $item;
     }
 
@@ -697,10 +707,10 @@ class reservasController extends Controller
     $str = "select pull.* from admin_eventos_mesas mesas left join admin_eventos_mesas_pull pull on (mesas.id_pull = pull.id) where mesas.id = " . $id_mesa . ";";
     $pull = DB::select($str)[0];
 
-    $str = "select count(pull_pagado) pull_pagado from admin_eventos_mesas_invitados where id_mesa = $id_mesa and estado and pull_pagado = 1 and sexo = 0;";
+    $str = "select count(pull_pagado) pull_pagado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and pull_pagado = 1 and sexo = 0;";
     $pull_pagado_mujeres = DB::select($str)[0]->pull_pagado;
 
-    $str = "select count(pull_pagado) pull_pagado from admin_eventos_mesas_invitados where id_mesa = $id_mesa and estado and pull_pagado = 1 and sexo = 1;";
+    $str = "select count(pull_pagado) pull_pagado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and id_mesa = $id_mesa and pull_pagado = 1 and sexo = 1;";
     $pull_pagado_hombres = DB::select($str)[0]->pull_pagado;
 
     return view('admin.reservas.lista_invitados', [
@@ -736,39 +746,65 @@ class reservasController extends Controller
     ]);
   }
 
-  public function agregar_invitado($id_mesa, $nombre = null, $sexo = null, $fila = null, $accion = null) {
+  public function agregar_invitado($id_mesa, $nombre = null, $sexo = null, $fila = null, $accion = null, $id = 0) {
     $nombre = urldecode($nombre);
-    if ($accion == 2) {
-      DB::table('admin_eventos_mesas_invitados')->where('id', $id_mesa)->update([
-        'nombre' => $nombre,
-        'sexo'   => $sexo,
-        'fila'   => $fila
-      ]);
-    } else {
-      $id_invitado = DB::table('admin_eventos_mesas_invitados')->insertGetId([
-        'id_mesa' => $id_mesa,
+
+    $str = "select * from admin_eventos_invitados where nombre = '" . $nombre . "';";
+    $invitado = DB::select($str);
+
+    $duplicado = false;
+    if (count($invitado) <= 0) {
+      $id_invitado = DB::table('admin_eventos_invitados')->insertGetId([
         'nombre'  => $nombre,
-        'sexo'    => $sexo,
-        'fila'    => $fila
+        'sexo'    => $sexo
       ]);
+
+      if ($accion == 2) {
+        DB::table('admin_eventos_mesas_invitados')->where('id', $id)->update([
+          'id_invitado' => $id_invitado,
+        ]);
+        $id_invitado = $id;
+      } else {
+        $id_invitado = DB::table('admin_eventos_mesas_invitados')->insertGetId([
+          'id_mesa'     => $id_mesa,
+          'id_invitado' => $id_invitado,
+          'fila'        => $fila
+        ]);
+      }
+    } else {
+      $duplicado = true;
+
+      $str = "select * from admin_eventos_mesas where id = $id_mesa;";
+      $id_evento = DB::select($str)[0]->id_evento;
+
+      $str = "select invitados.*, mesas_invitados.id_mesa, mesas.nombre nombre_mesa from admin_eventos_invitados invitados left join admin_eventos_mesas_invitados mesas_invitados on (invitados.id = mesas_invitados.id_invitado) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) where mesas_invitados.estado and mesas.id_evento = $id_evento and invitados.nombre = '$nombre';";
+      $registros = DB::select($str);
+
+      $idd_mesa = 0;
+      if (count($registros) > 0) {
+        $duplicadoInfo = $registros[0];
+      }
     }
 
     return json_encode(
       array(
         'id_mesa' => $id_mesa,
-        'nombre'  => str_replace(' ', '<br>', $nombre),
+        'nombre'  => $nombre,
         'sexo'    => $sexo,
         'fila'    => $fila,
-        'id'      => $id_invitado
+        'id'      => @$id_invitado,
+        'duplicado' => $duplicado,
+        'idd_mesa' => @$duplicadoInfo->id_mesa ?: 0,
+        'idd_nombre' => @$duplicadoInfo->nombre_mesa ?: 0
       )
     );
   }
 
-  public function detalle_invitados($id_mesa = null, $filtro = 1) {
-    $str  = "select invitados.*, mesas.pull, mesas.id_pull, pagos.id id_pago from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos_pagos pagos on (invitados.id = pagos.id_invitado) where id_mesa = $id_mesa and sexo = 0 and invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and mesas.estado order by nombre;";
+  public function detalle_invitados($id_evento = 0, $id_mesa = null, $filtro = 1) {
+    $str  = "select mesas_invitados.*, mesas.pull, mesas.id_pull, pagos.id id_pago, invitados.nombre, invitados.sexo, eventos.pagado evento_pagado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) left join admin_eventos_pagos pagos on (mesas_invitados.id = pagos.id_invitado) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where id_mesa = $id_mesa and sexo = 0 and mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and mesas.estado order by nombre;";
     $mujeres = DB::select($str);
 
-    $str  = "select invitados.*, mesas.pull, mesas.id_pull, pagos.id id_pago from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos_pagos pagos on (invitados.id = pagos.id_invitado) where id_mesa = $id_mesa and sexo = 1 and invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and mesas.estado order by nombre;";
+    $str  = "select mesas_invitados.*, mesas.pull, mesas.id_pull, pagos.id id_pago, invitados.nombre, invitados.sexo, eventos.pagado evento_pagado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) left join admin_eventos_pagos pagos on (mesas_invitados.id = pagos.id_invitado) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where id_mesa = $id_mesa and sexo = 1 and mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and mesas.estado order by nombre;";
     $hombres = DB::select($str);  
 
     $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and estado;";
@@ -780,16 +816,16 @@ class reservasController extends Controller
     $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and pagado and estado;";
     $no_pagados = DB::select($str)[0]->total; 
 
-    $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 0 and estado;";
+    $str  = "select count(mesas_invitados.id) total from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and id_mesa = $id_mesa and sexo = 0;";
     $mujeres_total = DB::select($str)[0]->total; 
 
-    $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 1 and estado;";
+    $str  = "select count(mesas_invitados.id) total from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and id_mesa = $id_mesa and sexo = 1;";
     $hombres_total = DB::select($str)[0]->total;
 
-    $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 0 and pagado and estado;";
+    $str  = "select count(mesas_invitados.id) total from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and id_mesa = $id_mesa and sexo = 0 and pagado;";
     $mujeres_pagado = DB::select($str)[0]->total; 
 
-    $str  = "select count(id) total from admin_eventos_mesas_invitados where id_mesa = $id_mesa and sexo = 1 and pagado and estado;";
+    $str  = "select count(mesas_invitados.id) total from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and id_mesa = $id_mesa and sexo = 1 and pagado;";
     $hombres_pagado = DB::select($str)[0]->total; 
 
     $str    = "select * from admin_eventos_mesas where id = $id_mesa;";
@@ -809,20 +845,21 @@ class reservasController extends Controller
       'hombres_total' => $hombres_total,
       'mujeres_pagado' => $mujeres_pagado,
       'hombres_pagado' => $hombres_pagado,
-      'filtro'         => $filtro
+      'filtro'         => $filtro,
+      'id_evento'      => $id_evento
     ]);
   }
 
   public function todos_los_invitados($id_evento = null) {
     $busqueda = @$_POST['busqueda'] ?: '';
     $filtro   = @$_POST['filtro'] ?: 1;
-    $str  = "select admin_eventos_mesas_invitados.*, admin_eventos_mesas.nombre mesa, admin_eventos_mesas.pull, admin_eventos_mesas.id_area, admin_eventos.nombre evento from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas.id = admin_eventos_mesas_invitados.id_mesa) left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento) where admin_eventos_mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and admin_eventos_mesas_invitados.sexo = 0 and admin_eventos_mesas_invitados.nombre like '%" . $busqueda . "%' " . ($id_evento ? ('and admin_eventos.id = ' . $id_evento) : '') . " order by id desc limit 30;";
+    $str  = "select mesas_invitados.*, invitados.nombre, admin_eventos_mesas.nombre mesa, admin_eventos_mesas.pull, admin_eventos_mesas.id_area, admin_eventos.nombre evento from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) left join admin_eventos_mesas on (admin_eventos_mesas.id = mesas_invitados.id_mesa) left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento) where mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and invitados.sexo = 0 and invitados.nombre like '%" . $busqueda . "%' " . ($id_evento ? ('and admin_eventos.id = ' . $id_evento) : '') . " order by id desc limit 30;";
     $mujeres = DB::select($str);
 
-    $str  = "select admin_eventos_mesas_invitados.*, admin_eventos_mesas.nombre mesa, admin_eventos_mesas.pull, admin_eventos_mesas.id_area, admin_eventos.nombre evento from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas.id = admin_eventos_mesas_invitados.id_mesa) left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento) where admin_eventos_mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and admin_eventos_mesas_invitados.sexo = 1 and admin_eventos_mesas_invitados.nombre like '%" . $busqueda . "%' " . ($id_evento ? ('and admin_eventos.id = ' . $id_evento) : '') . " order by id desc limit 30;";
-    $hombres = DB::select($str);  
+    $str  = "select mesas_invitados.*, invitados.nombre, admin_eventos_mesas.nombre mesa, admin_eventos_mesas.pull, admin_eventos_mesas.id_area, admin_eventos.nombre evento from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) left join admin_eventos_mesas on (admin_eventos_mesas.id = mesas_invitados.id_mesa) left join admin_eventos on (admin_eventos.id = admin_eventos_mesas.id_evento) where mesas_invitados.estado " . ($filtro == 3 ? "in (1, 0)" : "= $filtro") . " and invitados.sexo = 1 and invitados.nombre like '%" . $busqueda . "%' " . ($id_evento ? ('and admin_eventos.id = ' . $id_evento) : '') . " order by id desc limit 30;";
+    $hombres = DB::select($str);
 
-    // dd($data);
+    // dd($invitados);
 
     return view('admin.reservas.todos_los_invitados', [
       'menubar'   => $this->list_sidebar(),
@@ -851,6 +888,33 @@ class reservasController extends Controller
       array(
         'id' => $id,
         'pagado' => $pagado
+      )
+    );
+  }
+
+  public function cargar_invitados($id = 0, $id_mesa = 0) {
+    if ($id) {
+      $str = "select * from admin_eventos_mesas_invitados where id = $id;";
+      $id_invitado = DB::select($str)[0]->id_invitado;
+    }
+
+    $id_evento = 0;
+    if ($id_mesa) {
+      $str = "select * from admin_eventos_mesas where id = $id_mesa;";
+      $id_evento = DB::select($str)[0]->id_evento;
+    }
+
+    $str = "select * from admin_eventos_invitados where estado and id not in (select mesas_invitados.id_invitado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_mesas mesas on (mesas.id = mesas_invitados.id_mesa) where mesas_invitados.estado and mesas.id_evento = $id_evento) and nombre like '%" . @$_REQUEST['q'] . "%' limit 10;";
+    $invitados = DB::select($str);  
+
+    if (count($invitados) <= 0) {
+      $invitados = [array('nombre' => 'Agregar nuevo invitado', 'telefono' => null, 'id' => '+')];
+    }
+
+    return json_encode(
+      array(
+        'data' => $invitados,
+        'error' => 0
       )
     );
   }
@@ -895,7 +959,10 @@ class reservasController extends Controller
   }
 
   public function invitado_info($id) {
-    $str  = "select * from admin_eventos_mesas_invitados where id = $id and estado;";
+    $str = "select * from admin_eventos_mesas_invitados where id = $id;";
+    $id_invitado = DB::select($str)[0]->id_invitado;
+
+    $str  = "select invitados.* from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where invitados.id = $id_invitado and mesas_invitados.estado;";
     $invitado = DB::select($str)[0];
 
     return json_encode($invitado);
@@ -918,12 +985,12 @@ class reservasController extends Controller
   }
 
   public function lider_actualizado($id, $nombre = '', $correo = '', $telefono = '', $fecha_nacimiento = '') {
-      DB::table('admin_users')->where('id', $id)->update([
-        'name' => $nombre ?: '',
-        'mail' => $correo ?: '',
-        'telefono' => $telefono ?: '',
-        'fecha_nacimiento' => $fecha_nacimiento ?: ''
-      ]);
+    DB::table('admin_users')->where('id', $id)->update([
+      'name' => $nombre ?: '',
+      'mail' => $correo ?: '',
+      'telefono' => $telefono ?: '',
+      'fecha_nacimiento' => $fecha_nacimiento ?: ''
+    ]);
 
     return json_encode(
       array(
@@ -933,23 +1000,51 @@ class reservasController extends Controller
     );
   }
 
-  public function invitado_actualizado($id, $nombre = '', $sexo = '', $correo = '', $telefono = '', $fecha_nacimiento = '') {
-      $data = array(
-        'nombre' => $nombre ?: ''
-      );
-      if ($correo) {
-        $data['correo'] = $correo ?: '';
-      }
-      if ($telefono) {
-        $data['telefono'] = $telefono ?: '';
-      }
-      if ($correo) {
-        $data['fecha_nacimiento'] = $fecha_nacimiento ?: '';
-      }
-      if ($sexo != '') {
-        $data['sexo'] = $sexo ?: 0;
-      }
-      DB::table('admin_eventos_mesas_invitados')->where('id', $id)->update($data);
+
+  public function cambio_invitado($id, $id_invitado, $id_mesa) {
+    if ($id) {
+      DB::table('admin_eventos_mesas_invitados')->where('id', $id)->update([
+        'id_invitado' => $id_invitado
+      ]);
+    } else {
+      DB::table('admin_eventos_mesas_invitados')->insertGetId([
+        'id_mesa' => $id_mesa,
+        'id_invitado' => $id_invitado
+      ]);
+    }
+
+    $str  = "select * from admin_eventos_invitados where id = $id_invitado;";
+    $invitado = DB::select($str)[0];
+
+    return json_encode(
+      array(
+        'id'          => $id,
+        'id_invitado' => $id_invitado,
+        'invitado'    => $invitado
+      )
+    );
+  }
+
+  public function invitado_actualizado($id, $nombre = '', $sexo = '', $correo = '', $telefono = '', $fnacimiento = '') {
+    $str = "select * from admin_eventos_mesas_invitados where id = $id;";
+    $id_invitado = DB::select($str)[0]->id_invitado;
+
+    $data = array(
+      'nombre' => $nombre ?: ''
+    );
+    if ($correo) {
+      $data['correo'] = $correo ?: '';
+    }
+    if ($telefono) {
+      $data['telefono'] = $telefono ?: '';
+    }
+    if ($correo) {
+      $data['fecha_nacimiento'] = $fnacimiento ?: '';
+    }
+    if ($sexo != '') {
+      $data['sexo'] = $sexo ?: 0;
+    }
+    DB::table('admin_eventos_invitados')->where('id', $id_invitado)->update($data);
 
     return json_encode(
       array(
@@ -971,7 +1066,6 @@ class reservasController extends Controller
   }
 
   public function agregar_lider($id = null, $nombre = null, $sexo = 0, $mayor = 0){
-    // dd($_POST);
     if ($id) {
       $str  = "select * from admin_users where id = $id;";
       $data = DB::select($str)[0];
@@ -1114,8 +1208,8 @@ class reservasController extends Controller
       left join admin_eventos eventos on (eventos.id = mesas.id_evento and eventos.estado) 
       left join admin_eventos_venues venues on (eventos.id_venue = venues.id and venues.estado) 
       left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (mesas.id = invitados.id_mesa) 
-      left join (select count(*) mujeres, id_mesa from admin_eventos_mesas_invitados where sexo = 0 and estado group by id_mesa) mujeres on (mesas.id = mujeres.id_mesa) 
-      left join (select count(*) hombres, id_mesa from admin_eventos_mesas_invitados where sexo = 1 and estado group by id_mesa) hombres on (mesas.id = hombres.id_mesa) 
+      left join (select count(mesas_invitados.id) mujeres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 0 and mesas_invitados.estado group by id_mesa) mujeres on (mesas.id = mujeres.id_mesa) 
+      left join (select count(mesas_invitados.id) hombres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 1 and mesas_invitados.estado group by id_mesa) hombres on (mesas.id = hombres.id_mesa) 
       left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (mesas.id = pagados.id_mesa) 
       left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (mesas.id = duplicados.id_mesa) 
     where mesas.estado and mesas.id_evento = " . $id_evento . " order by mesas.id_area, invitados desc;";

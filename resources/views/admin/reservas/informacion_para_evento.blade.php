@@ -6,12 +6,28 @@
   <div class="row">
     <div class="col-12 col-sm-6 col-md-6 col-lg-5 mx-auto">
       <div class="card">
-        <img src="{{asset('covers/' . substr($evento->fecha, 5, 5) . '.jpg')}}" class="w-100">
+
+        @if (File::exists($public_path . 'covers/' . substr($evento->fecha, 5, 5) . '.mp4'))
+          <video id="video-cover" width="100%" height="auto" loop="loop" autoplay="autoplay" controls>
+            <source src="{{asset('covers/' . substr($evento->fecha, 5, 5) . '.mp4')}}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        @elseif (File::exists($public_path . 'covers/' . substr($evento->fecha, 5, 5) . '.jpg'))
+          <img src="{{asset('covers/' . substr($evento->fecha, 5, 5) . '.jpg')}}" class="w-100">
+        @endif
+
+        @if ($evento->id == 20)
+          <div class="col-12 px-2 mb-1">
+            <a href="http://www.jblgt.shop" target="_blank" class="btn btn-jbl d-block fs-3 mt-1">
+              <br><br>
+            </a>
+          </div>
+        @endif
 
         <div class="row px-1">
           @if (@count($mesas_asignadas) >= 1)
             <div class="col-12 mb-1">
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1" data-tab="contenedor-cordinadores" id="mesas-pane" style="background: #fde54d !important; border-color: #fde54d !important; color: #000 !important;">
+              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 btn-temporada" data-tab="contenedor-cordinadores" id="mesas-pane" style="background: #fde54d !important; border-color: #fde54d !important; color: #000 !important;">
                 <i style="height: 1.6rem; width: 1.6rem;" data-feather="grid"></i> TU MESA Y MESERO ASIGNADOS 
               </a>
 
@@ -60,7 +76,7 @@
           @endif
         </div>
         
-        <div class="col-12 text-center">
+        <div class="col-12 mt-1 text-center">
           <label class="pb-1 fs-1 fw-bold"> Lista de {{$mesa->nombre}} </label>
         </div>
 
@@ -73,15 +89,11 @@
             <div class="bg-dark p-1 border-white text-light text-center"> INFO </div>
           </div>
 
-          <div class="col-4 pe-0 cursor-pointer" data-tab="contenedor-dj" id="tab-pane">
+          <div class="col-6 pe-0 cursor-pointer" data-tab="contenedor-dj" id="tab-pane">
             <div class="bg-dark p-1 border-white text-light text-center"> DJ's </div>
           </div>
 
-          <div class="col-4 ps-0 pe-0 cursor-pointer" data-tab="contenedor-sponsors" id="tab-pane">
-            <div class="bg-dark p-1 border-white text-light text-center"> SPONSORS </div>
-          </div>
-
-          <div class="col-4 ps-0 cursor-pointer" data-tab="contenedor-sataff" id="tab-pane">
+          <div class="col-6 ps-0 cursor-pointer" data-tab="contenedor-sataff" id="tab-pane">
             <div class="bg-dark p-1 border-white text-light text-center"> STAFF </div>
           </div>
         </div>
@@ -141,13 +153,10 @@
                             <label class="py-1 fs-5 {{$item_m->repetido ? 'pb-0' : ''}}" id="nombre_invitado_{{$item_m->id}}"> {!! html_entity_decode($item_m->nombre) !!} </label>
                           </div>
                           <div class="col-2">
-                            @if (!@$item_m->telefono || !@$item_m->correo || !@$item_m->fecha_nacimiento)
-                              <!--
-                              <a href="#" onclick="modificarPerfil({{$item_m->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Editar" id="modificar_perfil">
-                                <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
-                              </a>
-                              -->
-                            @endif
+                            <a href="#" onclick="modificarPerfil({{$item_m->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Editar" id="modificar_perfil">
+                              <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
+                            </a>
+
                             @if (($evento->pagado && !$item_m->pagado) || ($mesa->pull && $mesa->id_pull && !$item_m->pull_pagado))
                               <!--
                               <a href="#" onclick="realizarPago({{$item_m->id}})" class="d-block text-center text-dark pt-1 fw-bold" title="Pagar" id="realizar_pago">
@@ -240,13 +249,10 @@
                             <label class="py-1 fs-5 {{$item_h->repetido ? 'pb-0' : ''}}" id="nombre_invitado_{{$item_h->id}}"> {!! html_entity_decode($item_h->nombre) !!} </label>
                           </div>
                           <div class="col-2">
-                            @if (!@$item_h->telefono || !@$item_h->correo || !@$item_h->fecha_nacimiento)
-                              <!--
-                              <a href="#" onclick="modificarPerfil({{$item_h->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Editar" id="modificar_perfil">
-                                <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
-                              </a>
-                              -->
-                            @endif
+                            <a href="#" onclick="modificarPerfil({{$item_h->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Editar" id="modificar_perfil">
+                              <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
+                            </a>
+
                             @if (($mesa->pull && $mesa->id_pull) || ($evento->pagado && !$item_h->pagado))
                               <!--
                               <a href="#" onclick="realizarPago({{$item_h->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Pagar" id="realizar_pago">
@@ -415,148 +421,137 @@
           </div>
         </div>
 
-        <div class="card-body p-0 tab-contenedor" id="contenedor-sponsors" style="display: none;">
-          <div class="row mt-1">
-            @for ($i = 1; $i <= 10; $i++)
-              <div class="col-12">
-                @if (File::exists($public_path . 'patrocinadores/' . $i . '_' . $evento->id . '.jpg'))
-                  <img src="{{asset('patrocinadores/' . $i . '_' . $evento->id . '.jpg')}}" class="w-100">
-                @else
-                  @if (File::exists($public_path . 'dj/' . $i . '_0.jpg'))
-                    <img src="{{asset('patrocinadores/' . $i . '_0.jpg')}}" class="w-100">
-                  @endif
-                @endif
-              </div>
-            @endfor
-          </div>
-        </div>
-
         <div class="card-body p-0 tab-contenedor" id="contenedor-sataff" style="display: none;">
           <div class="row">
             <div class="col-12">
 
-              <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-jefes">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> JEFES DE ÁREA 
-              </a>
+              @if (count($jefes) > 0)
+                <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-jefes">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> JEFES DE ÁREA 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-jefes" style="display: none;">
-                <div class="col-12">
-                  @foreach ($jefes as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-jefes" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($jefes as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-cordinadores" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="eye"></i> COORDINADORES 
-              </a>
+              @if (count($coordinadores) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-cordinadores" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="eye"></i> COORDINADORES 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-cordinadores" style="display: none;">
-                <div class="col-12">
-                  @foreach ($coordinadores as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-cordinadores" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($coordinadores as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-meseros">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> MESEROS 
-              </a>
+              @if (count($meseros) > 0)
+                <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-meseros">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> MESEROS 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-meseros" style="display: none;">
-                <div class="col-12">
-                  @foreach ($meseros as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-meseros" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($meseros as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-bartenders" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="life-buoy"></i> BARTENDERS 
-              </a>
+              @if (count($bartenders) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-bartenders" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="life-buoy"></i> BARTENDERS 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-bartenders" style="display: none;">
-                <div class="col-12">
-                  @foreach ($bartenders as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-bartenders" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($bartenders as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-bodegas" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="eye"></i> TEC / BODEGA 
-              </a>
+              @if (count($bodegas) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-bodegas" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="eye"></i> TEC / BODEGA 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-bodegas" style="display: none;">
-                <div class="col-12">
-                  @foreach ($bodegas as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-bodegas" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($bodegas as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-bouncers" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="shield"></i> SEGURIDAD 
-              </a>
+              @if (count($seguridad) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-bouncers" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="shield"></i> SEGURIDAD 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-bouncers" style="display: none;">
-                <div class="col-12">
-                  @foreach ($seguridad as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-bouncers" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($seguridad as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-banos" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="trash-2"></i> BAÑOS 
-              </a>
+              @if (count($banos) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-banos" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="trash-2"></i> BAÑOS 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-banos" style="display: none;">
-                <div class="col-12">
-                  @foreach ($banos as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-banos" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($banos as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
+              @endif
 
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-foodcourt" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="trash-2"></i> FOODCOURT 
-              </a>
+              @if (count($food) > 0)
+                <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-foodcourt" id="personal-pane">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="trash-2"></i> FOODCOURT 
+                </a>
 
-              <div class="row personal-contenedor" id="contenedor-foodcourt" style="display: none;">
-                <div class="col-12">
-                  @foreach ($food as $key => $item)
-                    @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
-                      <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
-                    @endif
-                  @endforeach
+                <div class="row personal-contenedor" id="contenedor-foodcourt" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($food as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
                 </div>
-              </div>
-
-              <a href="#" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1" data-tab="contenedor-taxis" id="personal-pane">
-                <i style="height: 1.6rem; width: 1.6rem;" data-feather="truck"></i> TAXIS AMARILLOS 
-              </a>
-
-              <div class="row personal-contenedor" id="contenedor-taxis" style="display: none;">
-                <div class="col-12">
-                    <img src="{{asset('colaboradores/t-1.jpg')}}" class="w-100">
-                    <img src="{{asset('colaboradores/t-2.jpg')}}" class="w-100">
-                </div>
-              </div>
+              @endif
 
               <div class="mt-1"></div>
             </div>
@@ -852,8 +847,18 @@
               url: ruta,
               dataType: "JSON",
               success: function(respuesta){
-                $('#modificar_perfil', $('#nombre_invitado_' + respuesta.id).parent().parent()).remove();
-                $('#nombre_invitado_' + respuesta.id).html(respuesta.nombre)
+                if (!respuesta.duplicado) {
+                  // $('#modificar_perfil', $('#nombre_invitado_' + respuesta.id).parent().parent()).remove();
+                  $('#nombre_invitado_' + respuesta.id).html(respuesta.nombre)
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'El nombre del invitado ya existe, ingresa otro nombre o agrega un apellido extra',
+                    timer: 5000
+                  }).then(result => {
+                    modificarPerfil(id_invitado)
+                  });
+                }
               }
           }).fail( function(jqXHR, textStatus, errorThrown) {
             Swal.fire({
@@ -878,19 +883,21 @@
         @php $background_url = asset('fondo/' . ($evento->id) . '.jpg') @endphp
         body { background: black url('{{$background_url}}') repeat top center; }
       @else
-        @php $background_url = asset('fondo/0.jpg') @endphp
+        @php $background_url = asset('fondo/0.jpg?' . date('YmdHis')) @endphp
         body { background: black url('{{$background_url}}') repeat top center; }
       @endif
 
-      @php $background_url = asset('img_admin/btn-gyt.jpg?') @endphp
-      .btn-gyt {
+      @php $background_url = asset('img_admin/btn-jbl.jpg') @endphp
+      .btn-jbl {
         border: none !important;
         background-image: url('{{$background_url}}') !important;
         color: #fff !important;
         padding-left: 35% !important;
-        font-size: 11px !important;
-        line-height: 15px;
+        background-position: center;
+        background-size: contain;
       }
+
+      .btn-temporada { background-image: linear-gradient(to right, #c60000 , #740000); border-color: #c60000 !important; }
 
       .modal-dialog .modal-content { background: transparent !important; }
       .gtc-container .swal2-popup { background-size: cover !important; }

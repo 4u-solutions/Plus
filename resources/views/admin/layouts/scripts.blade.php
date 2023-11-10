@@ -48,7 +48,3 @@
 <!-- END: Custom CSS-->
 
 <script src="{{ asset('app-assets/vendors/js/jquery/jquery.min.js')}}"></script>
-
-<style type="text/css">
-    .vertical-layout.vertical-menu-modern.menu-collapsed .navbar.fixed-top, .vertical-layout.vertical-menu-modern.menu-collapsed .navbar.floating-nav { left: 0 !important; }
-</style>

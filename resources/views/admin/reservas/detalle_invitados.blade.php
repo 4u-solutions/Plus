@@ -17,9 +17,9 @@
             <label class="text-light fs-5 d-block"> Total mujeres pagadas: {{$mujeres_pagado}} </label>
             <label class="text-light fs-5 d-block"> Total homres pagados: {{$hombres_pagado}} </label>
 
-            <a href="{{route('admin.reservas.mesas')}}" class="btn btn-light w-100 m-auto d-block fs-3 mt-1"><i style="height: 1.8rem; width: 1.8rem;" data-feather="arrow-left"></i> REGRESAR </a>
+            <a href="{{route('admin.reservas.mesas', ['id_evento' => $id_evento])}}" class="btn btn-light w-100 m-auto d-block fs-3 mt-1"><i style="height: 1.8rem; width: 1.8rem;" data-feather="arrow-left"></i> REGRESAR </a>
 
-            <a href="#" class="btn btn-light w-100 m-auto d-block fs-3 mt-1" onclick="agregarInvitado({{$mesa->id}})">
+            <a href="#" class="btn btn-light w-100 m-auto d-block fs-3 mt-1" onclick="cambiarInvitado(0, {{$mesa->id}})">
               <i style="height: 1.8rem; width: 1.8rem;" data-feather="plus"></i> AGREGAR INVITADO 
             </a>
 
@@ -48,18 +48,20 @@
                     <label class="text-light py-1 fs-4" id="nombre_invitado_{{$item->id}}"> {{$item->nombre}} </label>
                   </div>
 
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Pagado </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
-                  </div>
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Cortesía </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
-                  </div>
+                  @if ($item->evento_pagado)
+                    <div class="col-4 border bg-dark">
+                      <label class="text-light py-1 fs-4"> Pagado </label>
+                    </div>
+                    <div class="col-2 border form-check">
+                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
+                    </div>
+                    <div class="col-4 border bg-dark">
+                      <label class="text-light py-1 fs-4"> Cortesía </label>
+                    </div>
+                    <div class="col-2 border form-check">
+                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
+                    </div>
+                  @endif
 
                   @if ($item->pull)
                     <div class="col-4 border bg-dark">
@@ -89,8 +91,12 @@
                   </div>
                   <div class="col-8 border">
                     <label class="py-1 fs-4">
-                      <a href="#" onclick="modificarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
+                      <a href="#" onclick="editarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
                         <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
+                      </a>
+
+                      <a href="#" onclick="cambiarInvitado({{$item->id}}, {{$item->id_mesa}})" title="Cambiar invitado" class="d-inline-block text-dark">
+                        <i style="height: 1.8rem; width: 1.8rem;" data-feather="repeat"></i> 
                       </a>
 
                       <a href="#" onclick="borrarInvitado({{$item->id}})" title="Borrar" class="d-inline-block text-dark">
@@ -110,18 +116,20 @@
                     <label class="text-light py-1 fs-4" id="nombre_invitado_{{$item->id}}"> {{$item->nombre}} </label>
                   </div>
 
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Pagado </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
-                  </div>
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Cortesía </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
-                  </div>
+                  @if ($item->evento_pagado)
+                    <div class="col-4 border bg-dark">
+                      <label class="text-light py-1 fs-4"> Pagado </label>
+                    </div>
+                    <div class="col-2 border form-check">
+                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
+                    </div>
+                    <div class="col-4 border bg-dark">
+                      <label class="text-light py-1 fs-4"> Cortesía </label>
+                    </div>
+                    <div class="col-2 border form-check">
+                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
+                    </div>
+                  @endif
 
                   @if ($item->pull)
                     <div class="col-4 border bg-dark">
@@ -151,8 +159,12 @@
                   </div>
                   <div class="col-8 border">
                     <label class="py-1 fs-4">
-                      <a href="#" onclick="modificarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
+                      <a href="#" onclick="editarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
                         <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
+                      </a>
+
+                      <a href="#" onclick="cambiarInvitado({{$item->id}}, {{$item->id_mesa}})" title="Cambiar invitado" class="d-inline-block text-dark">
+                        <i style="height: 1.8rem; width: 1.8rem;" data-feather="repeat"></i> 
                       </a>
 
                       <a href="#" onclick="borrarInvitado({{$item->id}})" title="Borrar" class="d-inline-block text-dark">
@@ -356,7 +368,7 @@
       });
     }
 
-    function modificarInvitado(id) {
+    function editarInvitado(id) {
       Swal.fire({
         customClass: {
           confirmButton: 'btn btn-dark fs-1',
@@ -454,6 +466,81 @@
               success: function(respuesta){
                 console.log(respuesta)
                 $('.invitado_contenedor_' + respuesta.id).remove();
+              }
+          }).fail( function(jqXHR, textStatus, errorThrown) {
+            Swal.fire({
+              icon: 'error',
+              title: 'ERROR: INTENTA DE NUEVO',
+              timer: 2000
+            });
+          });
+        }
+      });
+    }
+
+    function cambiarInvitado(id, id_mesa) {
+      Swal.fire({
+        customClass: {
+          confirmButton: 'btn btn-dark fs-1',
+          cancelButton: 'btn btn-secondary fs-1'
+        },
+        reverseButtons: true,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
+                  <h1 class="modal-title" id="verifyModalContent_title">` + (id == 0 ? 'AGREGAR INVITADO' : 'EDITAR INVITADO') + `</h1>
+              </div>`,
+        html:`
+          <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
+            <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-12">
+                    <label class="fw-bold"> Nombre </label>
+                    <select name="id_invitado" id="id_invitado" class="form-control select2 w-100 fs-4 text-center" >
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`,
+        didOpen: () => {
+          $('select.select2').select2({
+            placeholder: 'Cambio de invitado por:',
+            ajax: {
+              url: '/admin/cargar_invitados/' + id + '/' + id_mesa,
+              dataType: 'json',
+              delay: 250,
+              processResults: function (data) {
+                return {
+                  results:  $.map(data.data, function (item) {
+                    return {
+                      text: item.nombre + (item.telefono != null ?  (' / ' + item.telefono) : ''),
+                      id: item.id
+                    }
+                  })
+                };
+              },
+              cache: true
+            }
+          }).on("select2:select", function(e) { 
+             if ($(this).val() == '+') {
+              agregarInvitado(id_mesa)
+
+             }
+          });
+        },
+      }).then(result => {
+        if (result.isConfirmed) {
+          var id_invitado = $('#id_invitado').val();
+          var ruta     = "/admin/cambio_invitado/" + id + "/" + id_invitado + "/" + id_mesa;
+          $.ajax({
+              type: "GET",
+              url: ruta,
+              dataType: "JSON",
+              success: function(respuesta){
+                location.reload();
               }
           }).fail( function(jqXHR, textStatus, errorThrown) {
             Swal.fire({

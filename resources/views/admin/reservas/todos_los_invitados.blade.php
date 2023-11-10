@@ -2,6 +2,7 @@
 @extends('admin.layouts.app')
 @section('main-content')
 @php $criti=[];@endphp
+
   <div class="row">
     <div class="col-md-12">
       <div class="card">
@@ -33,131 +34,75 @@
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              @if (count($mujeres) > 0)
-                <h1 class="d-block text-center">MUJERES</h1>
-              @endif
-              @foreach ($mujeres as $key => $item)
-                @if ($item->mesa)
-                  <div class="row mb-1 invitado_contenedor_{{$item->id}}" id="invitado_contenedor" rel="{{strtolower($item->nombre)}}">
-                    <div class="col-12 border bg-dark">
-                    <label class="text-light py-1 fs-4"> {{$item->nombre}}, {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->mesa}} ({{$item->evento}})</label>
-                    </div>
-
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> Pagado </label>
-                    </div>
-                    <div class="col-2 border form-check">
-                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
-                    </div>
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> Cortesía </label>
-                    </div>
-                    <div class="col-2 border form-check">
-                      <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
-                    </div>
-
-                    @if ($item->pull)
-                      <div class="col-4 border bg-dark">
-                        <label class="text-light py-1 fs-4"> {{$item->pull_pagado == 2 ? 'Aprobar p' : 'P'}}ull </label>
-                      </div>
-                      <div class="col-8 border form-check">
-                        <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="aprobar_pull" id="aprobar_pull" value="1" {{$item->pull_pagado == 1 ? 'checked' : ''}} />
-                      </div>
-                    @endif
-
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> ¿Menor de edad? </label>
-                    </div>
-                    <div class="col-2 border form-check">
-                      <input type="checkbox" class="form-check-input ms-1 mt-1" rel="{{$item->id}}" name="es_menor" id="es_menor" value="0" {{$item->es_menor ? 'checked enabled' : ''}} />
-                    </div>
-
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> Activo </label>
-                    </div>
-                    <div class="col-2 border form-check">
-                      <input type="checkbox" class="form-check-input ms-1 mt-1" rel="{{$item->id}}" name="estado" id="estado" value="0" {{$item->estado ? 'checked' : ''}} />
-                    </div>
-
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> Acciones </label>
-                    </div>
-                    <div class="col-8 border">
-                      <label class="py-1 fs-4">
-                        <a href="#" onclick="modificarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
-                          <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
-                        </a>
-
-                        <a href="#" onclick="borrarInvitado({{$item->id}})" title="Borrar" class="d-inline-block text-dark">
-                          <i style="height: 1.8rem; width: 1.8rem;" data-feather="trash"></i> 
-                        </a>
-                      </label>
-                    </div>
-                  </div>
+              @for ($i = 0; $i <= 1; $i++)
+                @if (((count($mujeres) > 0) && $i == 0) || ((count($hombres) > 0) && $i == 1))
+                  <h1 class="d-block text-center">{{$i == 0 ? 'MUJERES' : 'HOMBRES'}}</h1>
                 @endif
-              @endforeach
+                @foreach (($i == 0 ? $mujeres : $hombres) as $key => $item)
+                  @if ($item->mesa)
+                    <div class="row mb-1 invitado_contenedor_{{$item->id}}" id="invitado_contenedor" rel="{{strtolower($item->nombre)}}">
+                      <div class="col-12 border bg-dark">
+                      <label class="text-light py-1 fs-4"> {{$item->nombre}}, {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->mesa}} ({{$item->evento}})</label>
+                      </div>
 
-              @if (count($hombres) > 0)
-                <h1 class="d-block text-center mt-1">HOMBRES</h1>
-              @endif
-              @foreach ($hombres as $key => $item)
-                <div class="row mb-1 invitado_contenedor_{{$item->id}}" id="invitado_contenedor" rel="{{strtolower($item->nombre)}}">
-                  <div class="col-12 border bg-dark">
-                    <label class="text-light py-1 fs-4" id="nombre_invitado_{{$item->id}}">  {{$item->nombre}}, {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->mesa}} ({{$item->evento}})</label>
-                  </div>
+                      <div class="col-4 border bg-dark">
+                        <label class="text-light py-1 fs-4"> Pagado </label>
+                      </div>
+                      <div class="col-2 border form-check">
+                        <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
+                      </div>
+                      <div class="col-4 border bg-dark">
+                        <label class="text-light py-1 fs-4"> Cortesía </label>
+                      </div>
+                      <div class="col-2 border form-check">
+                        <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
+                      </div>
 
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Pagado </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="pagado_{{$item->id}}" value="1" {{$item->pagado ? 'checked' : ($item->cortesia ? '' : '')}} />
-                  </div>
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Cortesía </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="radio" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="pagado_{{$item->id}}" id="cortesia_{{$item->id}}" value="2" {{$item->cortesia ? 'checked' : ($item->pagado ? '' : '')}} />
-                  </div>
+                      @if ($item->pull)
+                        <div class="col-4 border bg-dark">
+                          <label class="text-light py-1 fs-4"> {{$item->pull_pagado == 2 ? 'Aprobar p' : 'P'}}ull </label>
+                        </div>
+                        <div class="col-8 border form-check">
+                          <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="aprobar_pull" id="aprobar_pull" value="1" {{$item->pull_pagado == 1 ? 'checked' : ''}} />
+                        </div>
+                      @endif
 
-                  @if ($item->pull)
-                    <div class="col-4 border bg-dark">
-                      <label class="text-light py-1 fs-4"> {{$item->pull_pagado == 2 ? 'Aprobar p' : 'P'}}ull </label>
-                    </div>
-                    <div class="col-8 border form-check">
-                      <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="aprobar_pull" id="aprobar_pull" value="1" {{$item->pull_pagado == 1 ? 'checked' : ''}} />
+                      <div class="col-4 border bg-dark">
+                        <label class="text-light py-1 fs-4"> ¿Menor de edad? </label>
+                      </div>
+                      <div class="col-2 border form-check">
+                        <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="es_menor" id="es_menor" value="0" {{$item->es_menor ? 'checked enabled' : ''}} />
+                      </div>
+
+                      <div class="col-4 border bg-dark">
+                        <label class="text-light py-1 fs-4"> Activo </label>
+                      </div>
+                      <div class="col-2 border form-check">
+                        <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="estado" id="estado" value="0" {{$item->estado ? 'checked' : ''}} />
+                      </div>
+
+                      <div class="col-4 border bg-dark">
+                        <label class="text-light py-1 fs-4"> Acciones </label>
+                      </div>
+                      <div class="col-8 border">
+                        <label class="py-1 fs-4">
+                          <a href="#" onclick="editarInvitado({{$item->id}})" title="Editar invitado" class="d-inline-block text-dark">
+                            <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
+                          </a>
+
+                          <a href="#" onclick="cambiarInvitado({{$item->id}}, {{$item->id_mesa}})" title="Cambiar invitado" class="d-inline-block text-dark">
+                            <i style="height: 1.8rem; width: 1.8rem;" data-feather="repeat"></i> 
+                          </a>
+
+                          <a href="#" onclick="borrarInvitado({{$item->id}})" title="Borrar" class="d-inline-block text-dark">
+                            <i style="height: 1.8rem; width: 1.8rem;" data-feather="trash"></i> 
+                          </a>
+                        </label>
+                      </div>
                     </div>
                   @endif
-
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> ¿Menor de edad? </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="checkbox" class="form-check-input ms-1 mt-1" rel="{{$item->id}}" name="es_menor" id="es_menor" value="0" {{$item->es_menor ? 'checked enabled' : ''}} />
-                  </div>
-
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Activo </label>
-                  </div>
-                  <div class="col-2 border form-check">
-                    <input type="checkbox" class="form-check-input ms-1 mt-1" rel="{{$item->id}}" name="estado" id="estado" value="0" {{$item->estado ? 'checked' : ''}} />
-                  </div>
-
-                  <div class="col-4 border bg-dark">
-                    <label class="text-light py-1 fs-4"> Acciones </label>
-                  </div>
-                  <div class="col-8 border">
-                    <label class="py-1 fs-4">
-                      <a href="#" onclick="modificarInvitado({{$item->id}})" title="Editar" class="d-inline-block text-dark">
-                        <i style="height: 1.8rem; width: 1.8rem;" data-feather="edit"></i> 
-                      </a>
-
-                      <a href="#" onclick="borrarInvitado({{$item->id}})" title="Borrar" class="d-inline-block text-dark">
-                        <i style="height: 1.8rem; width: 1.8rem;" data-feather="trash"></i> 
-                      </a>
-                    </label>
-                  </div>
-                </div>
-              @endforeach
+                @endforeach
+              @endfor
             </div>
           </div>
         </div>
@@ -297,7 +242,7 @@
        $("div#invitado_contenedor[rel*='" + valor_busqueda + "']").show();
     }
 
-    function modificarInvitado(id) {
+    function editarInvitado(id) {
       Swal.fire({
         customClass: {
           confirmButton: 'btn btn-dark fs-1',
@@ -318,6 +263,13 @@
                   <div class="col-12">
                     <label class="fw-bold"> Nombre </label>
                     <input class="form-control w-100 text-center fs-3" id="nombre" name="nombre" type="text" onClick="this.select();" autocomplete="off" />
+                  </div>
+                  <div class="col-12 pt-1">
+                    <label class="fw-bold"> Sexo </label>
+                    <select name="sexo" id="sexo" class="form-control select2 w-100 fs-4 text-center" >
+                      <option value="0">Mujer</option>
+                      <option value="1">Hombre</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -343,14 +295,14 @@
       }).then(result => {
         if (result.isConfirmed) {
           var nombre = $('#nombre').val();
-          var ruta     = "/admin/invitado_actualizado/" + id + "/" + encodeURIComponent(nombre);
+          var sexo = $('#sexo').val();
+          var ruta     = "/admin/invitado_actualizado/" + id + "/" + encodeURIComponent(nombre) + '/' + sexo;
           $.ajax({
               type: "GET",
               url: ruta,
               dataType: "JSON",
               success: function(respuesta){
-                console.log(respuesta)
-                $('#nombre_invitado_' + respuesta.id).html(respuesta.nombre)
+                location.reload();
               }
           }).fail( function(jqXHR, textStatus, errorThrown) {
             Swal.fire({
@@ -386,6 +338,81 @@
               success: function(respuesta){
                 console.log(respuesta)
                 $('.invitado_contenedor_' + respuesta.id).remove();
+              }
+          }).fail( function(jqXHR, textStatus, errorThrown) {
+            Swal.fire({
+              icon: 'error',
+              title: 'ERROR: INTENTA DE NUEVO',
+              timer: 2000
+            });
+          });
+        }
+      });
+    }
+
+    function cambiarInvitado(id, id_mesa) {
+      Swal.fire({
+        customClass: {
+          confirmButton: 'btn btn-dark fs-1',
+          cancelButton: 'btn btn-secondary fs-1'
+        },
+        reverseButtons: true,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
+                  <h1 class="modal-title" id="verifyModalContent_title">` + (id == 0 ? 'AGREGAR INVITADO' : 'EDITAR INVITADO') + `</h1>
+              </div>`,
+        html:`
+          <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
+            <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-12">
+                    <label class="fw-bold"> Nombre </label>
+                    <select name="id_invitado" id="id_invitado" class="form-control select2 w-100 fs-4 text-center" >
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`,
+        didOpen: () => {
+          $('select.select2').select2({
+            placeholder: 'Cambio de invitado por:',
+            ajax: {
+              url: '/admin/cargar_invitados/' + id + '/' + id_mesa,
+              dataType: 'json',
+              delay: 250,
+              processResults: function (data) {
+                return {
+                  results:  $.map(data.data, function (item) {
+                    return {
+                      text: item.nombre + (item.telefono != null ?  (' / ' + item.telefono) : ''),
+                      id: item.id
+                    }
+                  })
+                };
+              },
+              cache: true
+            }
+          }).on("select2:select", function(e) { 
+             if ($(this).val() == '+') {
+              // agregarInvitado(id_mesa)
+
+             }
+          });
+        },
+      }).then(result => {
+        if (result.isConfirmed) {
+          var id_invitado = $('#id_invitado').val();
+          var ruta     = "/admin/cambio_invitado/" + id + "/" + id_invitado + "/" + id_mesa;
+          $.ajax({
+              type: "GET",
+              url: ruta,
+              dataType: "JSON",
+              success: function(respuesta){
+                location.reload();
               }
           }).fail( function(jqXHR, textStatus, errorThrown) {
             Swal.fire({

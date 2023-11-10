@@ -14,7 +14,7 @@
             <label class="d-inline-block">Evento:</label>
             <select name="eventos" id="eventos" class="form-control select2 w-100 fs-3 text-center">
               @foreach ($eventos as $key => $item)
-                <option value="{{$item->id}}" {{$item->id == $id_evento ? 'selected' : ''}}>{{$array_mes[substr($item->fecha, 5, 2)]}}  {{$item->nombre}}</option>
+                <option value="{{$item->id}}" {{$item->id == $id_evento ? 'selected' : ''}}>{{$array_mes[(int)substr($item->fecha, 5, 2)]}}  {{$item->nombre}}</option>
               @endforeach
             </select>
           </h3>
@@ -40,7 +40,7 @@
           <div class="row">
             <div class="col-12">
               @foreach ($data as $key => $item)
-                <div class="row mb-1" id="mesa_contenedor" rel="{{$item->nombre_sin_acento}} ({{$item->evento}})">
+                <div class="row mb-1 mesa_{{$item->id}}" id="mesa_contenedor" rel="{{$item->nombre_sin_acento}} ({{$item->evento}})">
                   <div class="col-12 border bg-dark">
                     <label class="text-light py-1 fs-4"> {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->nombre}} ({{$item->evento}}) | Mesero: {{$item->mesero ?: 'Sin asignar'}}, Coordinador: {{$item->cobrador ?: 'Sin asignar'}}</label>
                   </div>
@@ -77,14 +77,17 @@
                       <a href="{{route('agregar_mesa', ['id_evento' => $id_evento, 'id' => $item->id])}}" title="Editar" class="d-inline-block text-dark">
                         <i style="height: 1.6rem; width: 1.6rem;" data-feather="edit"></i> 
                       </a>
-                      <a href="#" onclick="borrarMesa({{$item->id}})" class="d-inline-block text-dark" title="Borrar">
+                      <a href="#" onclick="borrarReservacion({{$item->id}})" class="d-inline-block text-dark" title="Borrar">
                         <i style="height: 1.6rem; width: 1.6rem;" data-feather="trash"></i> 
                       </a>
-                      <a href="{{route('detalle_invitados', ['id_mesa' => $item->id])}}" class="d-inline-block text-dark" title="Ver mesa">
+                      <a href="{{route('detalle_invitados', ['id_evento' => $id_evento, 'id_mesa' => $item->id])}}" class="d-inline-block text-dark" title="Ver mesa">
                         <i style="height: 1.6rem; width: 1.6rem;" data-feather="eye"></i> 
                       </a>
                       <a href="#" onclick="compartirAcceso('{{$item->usersys}}')" class="d-inline-block text-dark" title="Link para lider" target="_blank">
                         <i style="height: 1.6rem; width: 1.6rem;" data-feather="share-2"></i> 
+                      </a>
+                      <a href="#" onclick="compartirFront('{{$item->nombre}}', '{{$item->id}}')" class="d-inline-block text-dark" title="Link para lider" target="_blank">
+                        <i style="height: 1.6rem; width: 1.6rem;" data-feather="send"></i> 
                       </a>
                     </label>
                   </div>
@@ -102,10 +105,7 @@
       $('#' + formulario).attr('onsubmit', '').submit();
     }
 
-    function copiarTextoAcceso(usuario) {
-      var texto  = "";
-        texto += "Hola, le comparto el link para administrar a sus invitados: www.themanor.gt\n\nLos accesos son:\n*Usuario*: " + usuario + "\n*Contraseña*: 123";
-
+    function copiarTextoAcceso(texto) {
       var sampleTextarea = document.createElement("textarea");
       document.body.appendChild(sampleTextarea);
       sampleTextarea.value = texto;
@@ -125,20 +125,81 @@
             <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
               <div class="modal-body p-0">
                 <div class="row">
+                    <div class="col-12 p-0">
+                      Hola, le comparto el link para administrar a sus invitados: www.themanor.gt<br><br>
+                      Los accesos son:<br>
+                      <b>Usuario</b>: ` + usuario + `<br>
+                      <b>Contraseña</b>: 123
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>`
+      }).then(result => {
+        var texto = "Hola, le comparto el link para administrar a sus invitados: www.themanor.gt\n\nLos accesos son:\n*Usuario*: " + usuario + "\n*Contraseña*: 123";
+        copiarTextoAcceso(texto)
+      });
+    }
+
+    function compartirFront(mesa, id) {
+      Swal.fire({
+        customClass: {
+          confirmButton: 'btn btn-dark fs-1',
+        },
+        confirmButtonText: 'COPIAR TEXTO',
+        html:`
+          <div class="modal-dialog">
+            <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+              <div class="modal-body p-0">
+                <div class="row">
                   <div class="col-12 p-0">
-                    Hola, le comparto el link para administrar a sus invitados: www.themanor.gt<br><br>
-                    Los accesos son:<br>
-                    <b>Usuario</b>: ` + usuario + `<br>
-                    <b>Contraseña</b>: 123
+                    Reservación: <b>` + mesa + `</b>, revise la información del evento: (Mesa, jefe de area, coordinador y mesero), botón de INFO para menú, etc.<br><br>
+                    Hacer click para verlo y poderlo compartir con su grupo de amistades:<br>
+                    http://www.themanor.gt/admin/informacion_para_evento/` + id + `
                   </div>
                 </div>
               </div>
             </div>
           </div>`
       }).then(result => {
-        copiarTextoAcceso(usuario)
+        var texto = "Reservación: *" + mesa + "*, revise la información del evento: (Mesa, jefe de area, coordinador y mesero), botón de INFO para menú, etc.\n\nHacer click para verlo y poderlo compartir con su grupo de amistades:\nhttp://www.themanor.gt/admin/informacion_para_evento/" + id;
+        copiarTextoAcceso(texto)
       });
     }
+
+      function borrarReservacion(id_mesa) {
+        Swal.fire({
+          customClass: {
+            confirmButton: 'btn btn-dark fs-1',
+            cancelButton: 'btn btn-secondary fs-1'
+          },
+          reverseButtons: true,
+          showCancelButton: true,
+          confirmButtonText: 'SI',
+          cancelButtonText: 'NO',
+          title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
+                    <h1 class="modal-title" id="verifyModalContent_title">¿Desea borrar la reservación?</h1>
+                </div>`,
+        }).then(result => {
+          if (result.isConfirmed) {
+            var ruta = "/admin/borrar_reservacion/" + id_mesa
+            $.ajax({
+                type: "GET",
+                url: ruta,
+                dataType: "JSON",
+                success: function(respuesta){
+                  $('.mesa_' + id_mesa).slideUp().remove();
+                }
+            }).fail( function(jqXHR, textStatus, errorThrown) {
+              Swal.fire({
+                icon: 'error',
+                title: 'ERROR: INTENTA DE NUEVO',
+                timer: 2000
+              });
+            });
+          }
+        });
+      }
 
     $(document).ready(function(){
       $('select.select2').select2();

@@ -14,7 +14,7 @@
             <label class="d-inline-block">Evento:</label>
             <select name="eventos" id="eventos" class="form-control select2 w-100 fs-1" onchange="cambioDeFecha(this.value);">
               @foreach ($eventos as $key => $item)
-                <option value="{{$item->id}}" {{$item->id == $evento->id ? 'selected' : ''}}>{{$array_mes[substr($item->fecha, 5, 2)]}}  {{$item->nombre}}</option>
+                <option value="{{$item->id}}" {{$item->id == $evento->id ? 'selected' : ''}}>{{$array_mes[(int)substr($item->fecha, 5, 2)]}}  {{$item->nombre}}</option>
               @endforeach
             </select>
           </h3>

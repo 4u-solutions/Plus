@@ -71,7 +71,7 @@
                             <input type="hidden" name="lideres_mesas[]" value="{{$item->id_lider}}" />
                             </div>
                             <div class="col-2">
-                              <a href="#" onclick="borrarLider({{$item->id_lider}})" class="d-inline-block text-dark" title="Borrar">
+                              <a href="#" onclick="borrarLider({{$item->id_lider}}, {{$data->id}})" class="d-inline-block text-dark" title="Borrar">
                                 <i style="height: 1.8rem; width: 1.8rem;" data-feather="trash"></i> 
                               </a>
                             </div>
@@ -202,6 +202,7 @@
     }
 
     function agregarLider(id_mesa) {
+      var nombre_lider = '';
       Swal.fire({
         customClass: {
           confirmButton: 'btn btn-dark fs-1',
@@ -230,7 +231,7 @@
                   </div>
                   <div class="col-12" id="no_mostrar_lider" style="display: none;">
                     <label class="fw-bold"> Nombre </label>
-                    <input class="form-control w-100 text-center fs-3" id="nombre" name="nombre" type="text" onClick="this.select();" autocomplete="off" />
+                    <input class="form-control w-100 text-center fs-3" name="nlider" id="nlider" type="text" onClick="this.select();" autocomplete="off" value="" />
                   </div>
                   <div class="col-12 mt-1" id="no_mostrar_lider" style="display: none;">
                     <label class="fw-bold"> Sexo </label>
@@ -260,14 +261,15 @@
         if (result.isConfirmed) {
           var id_lider = $('#lideres').val();
           if (id_lider == '+') {
-            var nombre = $('#nombre').val()
+            var nlider = $('#nlider').val()
             var sexo   = $('#sexo').val()
             var mayor  = $('#mayor_edad').val()
             
-            var ruta = "/admin/agregar_lider/0/" + encodeURIComponent(nombre) + "/" + sexo + "/" + mayor
+            var ruta = "/admin/agregar_lider/0/" + encodeURIComponent(nlider) + "/" + sexo + "/" + mayor
           } else {
-            var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + id_lider
+            var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + id_lider + "/0"
           }
+          console.log(ruta)
           $.ajax({
               type: "GET",
               url: ruta,
@@ -280,7 +282,7 @@
                       <input type="hidden" name="lideres_mesas[]" value="` + respuesta.id + `" />
                     </div>
                     <div class="col-2">
-                      <a href="#" onclick="borrarLider(` + respuesta.id + `)" class="d-inline-block text-dark" title="Borrar">
+                      <a href="#" onclick="borrarLider(` + respuesta.id + `, ` + id_mesa + `)" class="d-inline-block text-dark" title="Borrar">
                         <i style="height: 1.8rem; width: 1.8rem;" data-feather="trash"></i> 
                       </a>
                     </div>
@@ -289,7 +291,8 @@
                 feather.replace();
 
                 if (id_lider == '+') {
-                  var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + respuesta.id
+                  var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + respuesta.id + "/1"
+                  console.log(ruta)
                   $.ajax({
                       type: "GET",
                       url: ruta,
@@ -458,14 +461,14 @@
       }
     }
 
-    function borrarLider(id) {
-      var ruta = "/admin/borrar_lider_de_mesa/" + id
+    function borrarLider(id_lider, id_mesa) {
+      var ruta = "/admin/borrar_lider_de_mesa/" + id_lider + '/' + id_mesa
       $.ajax({
           type: "GET",
           url: ruta,
           dataType: "JSON",
           success: function(respuesta){
-            $('#mesa_lider_' + id).slideUp().remove();
+            $('#mesa_lider_' + id_lider).slideUp().remove();
           }
       }).fail( function(jqXHR, textStatus, errorThrown) {
         Swal.fire({

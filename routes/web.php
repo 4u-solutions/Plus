@@ -94,8 +94,8 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
     Route::get('/eventos/{fecha?}', 'reservasController@eventos')->name('admin.reservas.eventos');
     Route::match(array('GET','POST','PUT'), '/agregar_evento/{id?}', 'reservasController@agregar_evento')->name('agregar_evento');
     Route::get('/lista_invitados/{id_mesa?}', 'reservasController@lista_invitados')->name('admin.reservas.lista_invitados');
-    Route::get('/agregar_invitado/{id_mesa?}/{nombre?}/{sexo?}/{file?}/{accion?}', 'reservasController@agregar_invitado')->name('agregar_invitado');
-    Route::get('/detalle_invitados/{id_mesa?}/{filtro?}', 'reservasController@detalle_invitados')->name('detalle_invitados');
+    Route::get('/agregar_invitado/{id_mesa?}/{nombre?}/{sexo?}/{file?}/{accion?}/{id?}', 'reservasController@agregar_invitado')->name('agregar_invitado');
+    Route::get('/detalle_invitados/{id_evento?}/{id_mesa?}/{filtro?}', 'reservasController@detalle_invitados')->name('detalle_invitados');
 
     Route::get('/borrar_invitado/{id_invitado?}', 'reservasController@borrar_invitado')->name('borrar_invitado');
     Route::get('/pago_invitado/{id?}/{pagado?}', 'reservasController@pago_invitado')->name('pago_invitado');
@@ -104,14 +104,15 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
     Route::get('/pull_pagado/{id?}/{pull_pagado?}', 'reservasController@pull_pagado')->name('pull_pagado');
     Route::get('/invitado_info/{id?}', 'reservasController@invitado_info')->name('invitado_info');
     Route::get('/lider_info', 'reservasController@lider_info')->name('lider_info');
-    Route::get('/invitado_actualizado/{id?}/{nombre?}/{sexo?}', 'reservasController@invitado_actualizado')->name('invitado_actualizado');
     Route::get('/lider_actualizado/{id?}/{nombre?}/{correo?}/{telefono?}/{fecha_nacimiento?}', 'reservasController@lider_actualizado')->name('lider_actualizado');
-    Route::get('/invitado_actualizado/{id?}/{nombre?}/{correo?}/{telefono?}/{fecha_nacimiento?}', 'reservasController@invitado_actualizado')->name('invitado_actualizado');
+    Route::get('/invitado_actualizado/{id?}/{nombre?}/{correo?}/{telefono?}/{fnacimiento?}', 'reservasController@invitado_actualizado')->name('invitado_actualizado');
+    Route::get('/cambio_invitado/{id?}/{id_invitado?}/{id_mesa?}', 'reservasController@cambio_invitado')->name('cambio_invitado');
+    Route::get('/cargar_invitados/{id?}/{id_mesa?}', 'reservasController@cargar_invitados')->name('cargar_invitados');
 
     Route::get('/lideres/{id?}', 'reservasController@lideres')->name('admin.reservas.lideres');
     Route::match(array('GET','POST','PUT'), '/agregar_lider/{id?}/{nombre?}/{sexo?}/{mayor?}', 'reservasController@agregar_lider')->name('agregar_lider');
-    Route::get('/agregar_lider_a_mesa/{id_mesa?}/{id_lider?}', 'reservasController@agregar_lider_a_mesa')->name('agregar_lider_a_mesa');
-    Route::get('/borrar_lider_de_mesa/{id?}', 'reservasController@borrar_lider_de_mesa')->name('borrar_lider_de_mesa');
+    Route::get('/agregar_lider_a_mesa/{id_mesa?}/{id_lider?}/{accion?}', 'reservasController@agregar_lider_a_mesa')->name('agregar_lider_a_mesa');
+    Route::get('/borrar_lider_de_mesa/{id_lider?}/{id_mesa?}', 'reservasController@borrar_lider_de_mesa')->name('borrar_lider_de_mesa');
     Route::get('/borrar_invitado_de_mesa/{id?}', 'reservasController@borrar_invitado_de_mesa')->name('borrar_invitado_de_mesa');
     Route::match(array('GET','POST','PUT'), '/todos_los_invitados/{id_evento?}', 'reservasController@todos_los_invitados')->name('todos_los_invitados');
     Route::get('/mantenerInvitado/{id_invitado?}', 'reservasController@mantenerInvitado')->name('mantenerInvitado');
@@ -137,6 +138,7 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
     Route::get('/asignar_mesa_lider/{id_mesa?}/{id_sector?}/{no_mesa?}', 'reservasController@asignar_mesa_lider')->name('asignar_mesa_lider');
     Route::get('/cargar_mesas_asignadas/{id_mesa?}', 'reservasController@cargar_mesas_asignadas')->name('cargar_mesas_asignadas');
     Route::get('/borrar_mesas_asignadas/{id?}', 'reservasController@borrar_mesas_asignadas')->name('borrar_mesas_asignadas');
+    Route::get('/borrar_reservacion/{id_mesa?}', 'reservasController@borrar_reservacion')->name('borrar_reservacion');
 
     Route::get('/control_de_ingreso', 'reservasController@control_de_ingreso')->name('control_de_ingreso');
 
@@ -159,6 +161,9 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
   Route::post('/emitir_pago', 'shareController@emitir_pago')->name('emitir_pago');
   
   Route::get('/click_patrocinio/{id_patrocinio?}/{id_lider?}/{id_invitado?}', 'shareController@click_patrocinio')->name('click_patrocinio');
+
+  Route::get('/unificar_invitados', 'shareController@unificar_invitados')->name('unificar_invitados');
+  Route::get('/eliminar_duplicados', 'shareController@eliminar_duplicados')->name('eliminar_duplicados');
   // *---- RUTAS SIN INICIAR SESIÓN ----*
 
 

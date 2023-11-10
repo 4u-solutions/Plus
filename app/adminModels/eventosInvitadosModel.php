@@ -3,16 +3,18 @@ namespace App\adminModels;
 
 use Illuminate\Database\Eloquent\Model;
 
-class eventosMesasInvitadosModel extends Model
+class eventosInvitadosModel extends Model
 {
   protected $guard = 'admin';
-  protected $table='admin_eventos_mesas_invitados';
+  protected $table='admin_eventos_invitados';
   protected $fillable = [
     "id",
-    "id_mesa",
-    "id_invitado",
-    "fila",
-    "estado",
+    "nombre",
+    "correo",
+    "telefono",
+    "fecha_nacimiento",
+    "sexo",
+    "es_menor",
     "created_at",
     "updated_at"
   ];

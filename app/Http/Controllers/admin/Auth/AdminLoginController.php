@@ -20,7 +20,6 @@ class AdminLoginController extends Controller
       return view('admin.Auth.login');
     }
     public function login(Request $request){
-      dd('1');
       $this->validate($request,[
         'usersys'=>'required',
         'password'=>'required',
