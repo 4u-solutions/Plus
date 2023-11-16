@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
 use App\adminModels\eventosModel;
 use App\adminModels\eventosMesasModel;
@@ -131,6 +132,9 @@ class shareController extends Controller
     $str = "select colaboradores.* from admin_eventos_venues_colaboradores venuesc left join admin_users colaboradores on (venuesc.id_colaborador = colaboradores.id) where id_venue = " . $evento->id_venue . " and roleUS = 4 and statusUs order by es_plus desc, prioridad, name;";
     $meseros = DB::select($str);
 
+    $str = "select colaboradores.* from admin_eventos_venues_colaboradores venuesc left join admin_users colaboradores on (venuesc.id_colaborador = colaboradores.id) where id_venue = 2 and roleUS = 4 and statusUs and colaboradores.es_plus = 0 order by name;";
+    $meseros_no_plus = DB::select($str);
+
     $str = "select colaboradores.* from admin_eventos_venues_colaboradores venuesc left join admin_users colaboradores on (venuesc.id_colaborador = colaboradores.id) where id_venue = " . $evento->id_venue . " and roleUS = 6 and statusUs order by es_plus desc, prioridad, name;";
     $bartenders = DB::select($str);
 
@@ -183,6 +187,7 @@ class shareController extends Controller
       'data_m'                  => @$data_m,
       'data_h'                  => @$data_h,
       'meseros'                 => $meseros,
+      'meseros_no_plus'         => $meseros_no_plus,
       'seguridad'               => $seguridad,
       'bartenders'              => $bartenders,
       'coordinadores'           => $coordinadores,
@@ -229,6 +234,69 @@ class shareController extends Controller
         'confirmButtonText' => $boton
       )
     );
+  }
+
+  public function enviar_pago_powertranz() {
+        $powerTranzId = env("POWER_TRANZ_ID");
+        $powerTranzPass = env("POWER_TRANZ_PASS");
+        $url = env("POWER_TRANZ_URL");
+
+        $headers = [
+            'PowerTranz-PowerTranzId' => $powerTranzId,
+            'PowerTranz-PowerTranzPassword' => $powerTranzPass,
+        ];
+
+
+        $preIdentifier = bin2hex(random_bytes(12));
+        $identifier = bin2hex(random_bytes(8));
+        $identifier = $preIdentifier .'-1983-4165-8535-'.$identifier;
+
+        $data = [
+            'TransactionIdentifier' => $identifier,
+            'TotalAmount' => 10,
+            'CurrencyCode' => '320',//978
+            'ThreeDSecure' => true,
+            'Source' => [
+                'CardPan' => '4012000000020071',
+                'CardCvv' => '123',
+                'CardExpiration' => '2512', // AAMM
+                'CardholderName' => 'John Doe'
+            ],
+            'OrderIdentifier'=> 'INT'.$identifier,
+            // 'BillingAddress'=> [
+            //     'FirstName'=> 'john',
+            //     'LastName'=> 'doe',
+            //     'Line1'=> 'Guatemala',
+            //     'Line2'=> 'Guatemala',
+            //     'City'=> 'Guatemala',
+            //     'State'=> '',
+            //     'PostalCode'=> '01021',
+            //     'CountryCode'=> '840',
+            //     'EmailAddress'=> 'test@test.com',
+            //     'PhoneNumber'=> '502-5444-4444'
+            // ],
+            'AddressMatch'=> false,
+            'ExtendedData'=> [
+                'ThreeDSecure'=> [
+                    'ChallengeWindowSize'=> 4,
+                    'ChallengeIndicator'=> '02'
+                ],
+                'MerchantResponseUrl' => 'http://api.tickt.dvp/api/pagospower'
+            ]
+        ];
+
+        try{
+            $response = Http::withHeaders($headers)->post($url.'spi/sale', $data);
+        }catch(Exception $e){
+            dd($e);
+        }
+
+        dd($response);
+
+        return response()->json([
+            "status" => true,
+            "data" => $response->json(),
+        ], 400);
   }
 
   public function emitir_pago() {

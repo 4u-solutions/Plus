@@ -116,13 +116,11 @@
             </div>
           @endif
 
-          @if ($evento->id == 20)
-            <div class="col-12 px-1">
-              <a href="http://www.jblgt.shop" target="_blank" class="btn btn-jbl d-block fs-3 mt-1">
-                <br><br>
-              </a>
-            </div>
-          @endif
+          <div class="col-12 px-1">
+            <a href="http://www.jblgt.shop" target="_blank" class="btn btn-jbl d-block fs-3 mt-1">
+              <br><br>
+            </a>
+          </div>
         </div>
 
         <div class="row">

@@ -46,6 +46,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'composer/semver' => array(
+            'pretty_version' => '3.4.0',
+            'version' => '3.4.0.0',
+            'reference' => '35e8d0af4486141bc745f23a29cc2091eb624a32',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/./semver',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'cordoval/hamcrest-php' => array(
             'dev_requirement' => true,
             'replaced' => array(
@@ -575,9 +584,9 @@
             'dev_requirement' => false,
         ),
         'maatwebsite/excel' => array(
-            'pretty_version' => '3.1.40',
-            'version' => '3.1.40.0',
-            'reference' => '8a54972e3d616c74687c3cbff15765555761885c',
+            'pretty_version' => '3.1.50',
+            'version' => '3.1.50.0',
+            'reference' => 'd79e66391aa306983bb7e234503f5605c3e33348',
             'type' => 'library',
             'install_path' => __DIR__ . '/../maatwebsite/excel',
             'aliases' => array(),

@@ -43,7 +43,7 @@
             <div class="row">
               <div class="col-12" id="busqueda_contenedor">
                 @foreach ($data as $key => $item)
-                  <div class="row invitado_contenedor {{$item->ingreso ? 'bg-success text-light' : ''}}" id="ingreso_{{$item->id_invitado}}">
+                  <div class="row invitado_contenedor {{$item->ingreso ? 'bg-success text-light' : ''}}" id="ingreso_{{$item->id}}">
                     <div class="col-12 border">
                       <div class="row">
                         <div class="col-10">
@@ -57,7 +57,7 @@
                           @endif
                         </div>
                         <div class="col-2 form-check pt-2">
-                          <input type="checkbox" class="form-check-input" name="ingreso" id="ingreso" value="1" rel="{{$item->id_invitado}}" style="border: 2px solid #000; box-shadow: 2px 2px black; height: 2.5rem; width: 2.5rem;" {{$item->ingreso ? 'checked' : ''}}/>
+                          <input type="checkbox" class="form-check-input" name="ingreso" id="ingreso" value="1" rel="{{$item->id}}" style="border: 2px solid #000; box-shadow: 2px 2px black; height: 2.5rem; width: 2.5rem;" {{$item->ingreso ? 'checked' : ''}}/>
                         </div>
                       </div>
                     </div>

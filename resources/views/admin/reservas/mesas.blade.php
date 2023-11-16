@@ -50,7 +50,10 @@
                   <div class="col-8 border">
                     <label class="py-1 fs-4 d-block pb-0"> Pax: {{$item->pax}} </label>
                     <label class="fs-4 d-block pb-0"> En lista: {{$item->invitados ?: 0}} </label>
+                    <!--
                     <label class="fs-4 d-block pb-0"> Duplicados: {{$item->duplicados ?: 0}} </label>
+                    -->
+                    <label class="fs-4 d-block pb-0"> Ingresados: {{$item->ingresados ?: 0}} </label>
                     @if ($item->pagado)
                       <label class="fs-4 d-block pb-0"> Pagados: {{$item->pagados ?: 0}} </label>
                     @endif

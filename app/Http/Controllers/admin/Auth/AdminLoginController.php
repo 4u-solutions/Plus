@@ -48,6 +48,8 @@ class AdminLoginController extends Controller
           $ruta = '/admin/control_de_ingreso';
         } elseif ($usuario->roleUS == 10) {
           $ruta = route('admin.bodega.inventario');
+        } elseif ($usuario->roleUS == 13) {
+          $ruta = '/admin/resumen-g';
         }
 
         Session::put('global_id_mesero', 0);

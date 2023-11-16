@@ -39,7 +39,7 @@
               <label class="text-light py-1 fs-1"> Total costos (-): </label>
             </div>
             <div class="col-12 col-sm-8 border">
-              <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$ventas->total_costo, 2)}} </label>
+              <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$costos->total_costo, 2)}} </label>
             </div>
             <div class="col-12 col-sm-4 border bg-dark text-end">
               <label class="text-light py-1 fs-1"> Total cortesías (-): </label>
@@ -83,6 +83,7 @@
             </div>
           </div>
 
+          <!--
           <div class="row mt-2">
             <h1> Resumen inventario</h1>
             <div class="col-12 col-sm-4 border bg-dark text-end">
@@ -93,6 +94,7 @@
               <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$total_venta, 2)}} </label>
             </div>
           </div>
+          -->
         </div>
       </div>
     </div>

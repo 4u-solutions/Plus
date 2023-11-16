@@ -133,7 +133,7 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
 
     Route::get('/reportes', 'reservasController@reportes')->name('admin.reservas.reporte');
     Route::get('/reporte_estadisticas/{id_evento?}', 'reservasController@reporte_estadisticas')->name('reporte_estadisticas');
-    Route::get('/reporte_por_pax/{id_evento?}', 'reservasController@reporte_por_pax')->name('reporte_por_pax');
+    Route::get('/reporte_por_pax/{id_evento?}/{reporte?}', 'reservasController@reporte_por_pax')->name('reporte_por_pax');
 
     Route::get('/asignar_mesa_lider/{id_mesa?}/{id_sector?}/{no_mesa?}', 'reservasController@asignar_mesa_lider')->name('asignar_mesa_lider');
     Route::get('/cargar_mesas_asignadas/{id_mesa?}', 'reservasController@cargar_mesas_asignadas')->name('cargar_mesas_asignadas');
@@ -159,6 +159,7 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
 
   Route::get('/cargar_formulario_pago/{id_invitado?}', 'shareController@cargar_formulario_pago')->name('cargar_formulario_pago');
   Route::post('/emitir_pago', 'shareController@emitir_pago')->name('emitir_pago');
+  Route::get('/enviar_pago_powertranz', 'shareController@enviar_pago_powertranz')->name('enviar_pago_powertranz');
   
   Route::get('/click_patrocinio/{id_patrocinio?}/{id_lider?}/{id_invitado?}', 'shareController@click_patrocinio')->name('click_patrocinio');
 

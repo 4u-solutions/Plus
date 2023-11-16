@@ -16,13 +16,11 @@
           <img src="{{asset('covers/' . substr($evento->fecha, 5, 5) . '.jpg')}}" class="w-100">
         @endif
 
-        @if ($evento->id == 20)
-          <div class="col-12 px-2 mb-1">
-            <a href="http://www.jblgt.shop" target="_blank" class="btn btn-jbl d-block fs-3 mt-1">
-              <br><br>
-            </a>
-          </div>
-        @endif
+        <div class="col-12 px-2 mb-1">
+          <a href="http://www.jblgt.shop" target="_blank" class="btn btn-jbl d-block fs-3 mt-1">
+            <br><br>
+          </a>
+        </div>
 
         <div class="row px-1">
           @if (@count($mesas_asignadas) >= 1)
@@ -459,12 +457,28 @@
 
               @if (count($meseros) > 0)
                 <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-meseros">
-                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> MESEROS 
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> MESEROS PLUS
                 </a>
 
                 <div class="row personal-contenedor" id="contenedor-meseros" style="display: none;">
                   <div class="col-12">
                     @foreach ($meseros as $key => $item)
+                      @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
+                        <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
+                      @endif
+                    @endforeach
+                  </div>
+                </div>
+              @endif
+
+              @if (count($meseros_no_plus) > 0)
+                <a href="#" id="personal-pane" class="btn btn-dark d-block m-auto d-block fs-3 mt-1 mx-1 btn-temporada" data-tab="contenedor-meseros-eventos">
+                  <i style="height: 1.6rem; width: 1.6rem;" data-feather="users"></i> MESEROS EVENTOS
+                </a>
+
+                <div class="row personal-contenedor" id="contenedor-meseros-eventos" style="display: none;">
+                  <div class="col-12">
+                    @foreach ($meseros_no_plus as $key => $item)
                       @if (File::exists($public_path . 'colaboradores/' . $item->id . '.jpg'))
                         <img src="{{asset('colaboradores/' . $item->id . '.jpg')}}" class="w-100">
                       @endif

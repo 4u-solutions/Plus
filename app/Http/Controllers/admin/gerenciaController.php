@@ -134,9 +134,13 @@ class gerenciaController extends Controller
     //RESUMEN VENTAS TOTALES
 
     $fecha  = @$fecha ?: date('Y-m-d');
-    $str = "select sum(producto_vendido.cantidad * ap.costo) total_costo, sum(producto_vendido.cantidad * ap.precio) total_vendido from admin_productos ap left join (select id_producto, sum(cantidad) cantidad, admin_pedidos.id_tipo from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo < 4) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicial' and '$fecha_final' and contable group by id_producto, admin_pedidos.id_tipo) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado and producto_vendido.id_tipo < 4;";
-    // echo $str; exit();
+    $str = "select sum(monto) total_vendido from admin_pedidos where estado and created_at between '$fecha_inicial' and '$fecha_final' and id_tipo < 4;";
     $ventas = DB::select($str)[0];
+
+
+    $str = "select sum(producto_vendido.cantidad * ap.costo) total_costo, sum(producto_vendido.cantidad * ap.precio) total_vendido from admin_productos ap left join (select id_producto, sum(cantidad) cantidad, admin_pedidos.id_tipo from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo < 4) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicial' and '$fecha_final' and contable group by id_producto, admin_pedidos.id_tipo) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado and producto_vendido.id_tipo < 4;";
+    $costos = DB::select($str)[0];
+
 
     //RESUMEN COMISION MESEROS
 
@@ -182,6 +186,7 @@ class gerenciaController extends Controller
       'fecha'         => $fecha,
       'pagos'         => $pagos,
       'inventario'    => $inventario,
+      'costos'        => $costos,
       'fecha_inicial' => substr($fecha_inicial, 0, 10),
       'fecha_final'   => substr($fecha_final, 0, 10)
     ]);
