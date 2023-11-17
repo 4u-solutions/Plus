@@ -83,18 +83,21 @@
             </div>
           </div>
 
-          <!--
           <div class="row mt-2">
             <h1> Resumen inventario</h1>
             <div class="col-12 col-sm-4 border bg-dark text-end">
-              <label class="text-light py-1 fs-1"> Valor venta: </label>
+              <label class="text-light py-1 fs-1"> Valor inicial físico: </label>
             </div>
             <div class="col-12 col-sm-8 border">
-              @php $total_venta = @$inventario->total_final ?: (@$inventario->total_actual ?: @$inventario->total_inicial); @endphp
-              <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$total_venta, 2)}} </label>
+              <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$inventario->valor_inicial)}} </label>
+            </div>
+            <div class="col-12 col-sm-4 border bg-dark text-end">
+              <label class="text-light py-1 fs-1"> Valor final físico: </label>
+            </div>
+            <div class="col-12 col-sm-8 border">
+              <label class="fs-5 pt-1 fs-1"> Q. {{number_format(@$inventario->valor_final)}} </label>
             </div>
           </div>
-          -->
         </div>
       </div>
     </div>

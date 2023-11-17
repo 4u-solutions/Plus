@@ -21,10 +21,12 @@ class reportePorPax implements FromView,WithDrawings
 
     public function drawings()
     {
+        $public_path = (strpos(getcwd(), 'themanorgt') ? getcwd() :  (substr(getcwd(), 0, strrpos(getcwd(), '/')) . '/public')) . '/';
+
         $drawing = new Drawing();
         $drawing->setName('Logo');
         $drawing->setDescription('Logo - test'.Helper::get_platform());
-        $drawing->setPath(public_path('/img_admin/logo-plus-negro.png'));
+        $drawing->setPath($public_path . 'img_admin/logo-plus-negro.png');
         $drawing->setHeight(80);
         $drawing->setCoordinates('A1');
 

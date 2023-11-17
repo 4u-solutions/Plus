@@ -5,9 +5,16 @@
   <div class="row">
     <div class="col-md-12">
       <div class="card">
-          <div class="card-header bg-dark">
-            <h3 class="card-title">
-              CONTROL DE INGRESOS
+          <div class="card-header bg-dark p-1">
+            <h3 class="card-title w-100 d-block">
+              CHECKPOINT
+
+              <a href="#" id="mostrar_info" class="text-light ms-1 float-end fs-3 px-0">
+                <i style="height: 3rem; width: 3rem;" data-feather="info"></i>
+              </a>
+              <a href="#" id="ingreso_sin_lista" class="text-light float-end fs-3 px-0">
+                <i style="height: 3rem; width: 3rem;" data-feather="user-x"></i>
+              </a>
             </h3>
 
             <h3 class="card-title w-100">
@@ -16,24 +23,9 @@
                   <input class="form-control w-100 mt-1 fs-3" id="busqueda" type="text" value="" placeholder="Buscar invitado" autocomplete="off" />
                 </div>
                 <div class="col-2 px-0">
-                  <a href="#" id="limpiar_busqueda" class="btn btn-dark d-block m-auto d-block fs-3">
+                  <a href="#" id="limpiar_busqueda" class="btn btn-dark d-block m-auto d-block fs-3 px-0">
                     <i style="height: 3rem; width: 3rem;" data-feather="x-circle"></i>
                   </a>
-                </div>
-              </div>
-
-              <div class="row mt-1">
-                <div class="col-6">
-                  <span class="text-light">En lista: {{$total_invitados}}</span>
-                </div>
-                <div class="col-6">
-                  <span class="text-light">Pendientes: {{$pendientes_ingreso}}</span>
-                </div>
-                <div class="col-6">
-                  <span class="text-light">% de ingreso: {{number_format(1 - (($total_invitados - $ingresados) / $total_invitados), 2)}}%</span>
-                </div>
-                <div class="col-6">
-                  <span class="text-light">% pendiente: {{number_format(1 - (($total_invitados - $pendientes_ingreso) / $total_invitados), 2)}}%</span>
                 </div>
               </div>
             </h3>
@@ -150,6 +142,150 @@
           });
         });
       })
+
+      $('#mostrar_info').click(function(){
+        Swal.fire({
+          customClass: {
+            confirmButton: 'btn btn-dark fs-1',
+          },
+          confirmButtonText: 'Cerrar',
+          title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
+                    <h1 class="modal-title" id="verifyModalContent_title">INFORMACIÓN DE CHECKPOINT</h1>
+                </div>`,
+          html:`
+            <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
+              <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+                <div class="modal-body">
+                  <div class="row">
+                    <div class="col-12 text-start">
+                      <span class="text-dark fs-3">Total en lista: <label id="data_en_lista"></label></span>
+                    </div>
+                    <div class="col-12 text-start">
+                      <span class="text-dark fs-3">Ingresaron en lista: <label id="data_ingresaron"></label></span>
+                    </div>
+                    <div class="col-12 text-start">
+                      <span class="text-dark fs-3">Total pendientes: <label id="data_pendientes"></label></span>
+                    </div>
+                    <div class="col-12 text-start">
+                      <span class="text-dark fs-3">Porcentaje de ingreso: <label id="porcentaje_ingreso"></label>%</span>
+                    </div>
+                    <div class="col-12 text-start mb-1">
+                      <span class="text-lidark fs-3">Porcentaje pendiente: <label id="porcentaje_pendiente"></label>%</span>
+                    </div>
+                    <hr>
+                    <div class="col-12 text-start mb-1">
+                      <span class="text-lidark fs-3">Ingresos sin lista: <label id="ingresos_sin_lista"></label></span>
+                    </div>
+                    <hr>
+                    <div class="col-12 text-start">
+                      <b><span class="text-lidark fs-3">Total ingresos: <label id="total_ingresos"></label></span></b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`,
+          didOpen: () => {
+            var ruta = '/admin/info_control_de_ingreso';
+            $.ajax({
+                type: "GET",
+                url: ruta,
+                dataType: "JSON",
+                success: function(respuesta){
+                  console.log(respuesta)
+                  $('#data_en_lista').html(respuesta.total_invitados);
+                  $('#data_ingresaron').html(respuesta.ingresados);
+                  $('#data_pendientes').html(respuesta.pendientes_ingreso);
+                  $('#porcentaje_ingreso').html(respuesta.porcentaje_ingreso);
+                  $('#porcentaje_pendiente').html(respuesta.porcentaje_pendientes);
+                  $('#ingresos_sin_lista').html(respuesta.sin_lista);
+                  $('#total_ingresos').html(respuesta.sin_lista + respuesta.ingresados);
+                }
+            }).fail( function(jqXHR, textStatus, errorThrown) {
+              Swal.fire({
+                icon: 'error',
+                title: 'ERROR: INTENTA DE NUEVO',
+                timer: 2000
+              });
+            });
+          },
+        }).then(result => {
+          if (result.isConfirmed) {
+            var cantidad = parseInt($('#cantidad-botellas').val());
+            ejectuarAgregar(id_pedido, id_producto, contable, cantidad, 0);
+          }
+        });
+      });
+
+      $('#ingreso_sin_lista').click(function(){
+        Swal.fire({
+          customClass: {
+            confirmButton: 'btn btn-dark fs-1',
+          },
+          confirmButtonText: 'Cerrar',
+          title: `<div class="modal-header" style="padding: 0; margin: auto; border:none;">
+                    <h1 class="modal-title" id="verifyModalContent_title">MARCAR INGRESOS SIN LISTA</h1>
+                </div>`,
+          html:`
+            <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
+              <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+                <div class="modal-body">
+                  <div class="row">
+                    <div class="col-3">
+                      <a href="#" id="cantidad-menos" class="btn btn-dark fs-1 text-dark" style="pointer-events: none;">-</a>
+                    </div>
+                    <div class="col-6">
+                      <input class="form-control h-100 w-100 text-center" id="cantidad-ingresos" name="cantidad-ingresos" type="text" value="0" style="font-size: 2rem;" onClick="this.select();" autocomplete="off" />
+                    </div>
+                    <div class="col-3">
+                      <a href="#" id="cantidad-mas" class="btn btn-dark fs-1" style="font-size: 4rem;">+</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`
+        }).then(result => {});
+      });
+
+      $('body').on('click', '#cantidad-mas', function(){
+        cantidadBotellas = parseInt($('#cantidad-ingresos').val()) + 1;
+        $('#cantidad-ingresos').val(cantidadBotellas)
+
+        if (cantidadBotellas > 0) {
+          $('#cantidad-menos').removeAttr('style');
+        }
+
+        var ruta = '/admin/ingreso_sin_lista/{{$evento->id}}';
+        $.ajax({
+            type: "GET",
+            url: ruta,
+            dataType: "JSON",
+            success: function(respuesta){
+              console.log(respuesta)
+            }
+        }).fail( function(jqXHR, textStatus, errorThrown) {
+          Swal.fire({
+            icon: 'error',
+            title: 'ERROR: INTENTA DE NUEVO',
+            timer: 2000
+          });
+        });
+
+        return false;
+      });
+
+
+      $('body').on('click', '#cantidad-menos', function(){
+        cantidadBotellas = parseInt($('#cantidad-ingresos').val()) - 1;
+        $('#cantidad-ingresos').val(cantidadBotellas)
+
+        if (cantidadBotellas == 0) {
+          $('#cantidad-menos').css('pointer-events', 'none');
+        } else {
+          $('#cantidad-menos').removeAttr('style');
+        }
+
+        return false;
+      });
     })
   </script>
 

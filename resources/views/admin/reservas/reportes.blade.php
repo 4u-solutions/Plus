@@ -26,10 +26,6 @@
             <a href="{{route('reporte_pull')}}" class="btn btn-dark d-block m-auto d-block fs-3 mt-1">
               <i style="height: 1.6rem; width: 1.6rem;" data-feather="pie-chart"></i> REPORTE PULLS
             </a>
-
-            <a href="{{route('reporte_meseros_sin_asignar')}}" class="btn btn-dark d-block m-auto d-block fs-3 mt-1">
-              <i style="height: 1.6rem; width: 1.6rem;" data-feather="pie-chart"></i> REPORTE MESEROS SIN ASIGNAR
-            </a>
           </div>
         </div>
       </div>

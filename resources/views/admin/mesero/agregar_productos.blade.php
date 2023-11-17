@@ -193,78 +193,86 @@
         url: ruta,
         dataType: "JSON",
         success: function(respuesta){
-          html = `
-            <div class="detalle_` + id_detalle + ` row mt-1 border-bottom pb-1" id="detalle_` + respuesta.id_det + `" data-id="` + respuesta.id_det + `">
-              <div class="col-6 text-start pe-0">
-                <label class="fs-5 d-block">` + respuesta.nombre + `</label>
-                <label class="fs-5 d-block">Cantidad: ` + respuesta.cantidad + `</label>
-              </div>`;
-          if (contable == '1') {
+          if (!respuesta.error) {
+            html = `
+              <div class="detalle_` + id_detalle + ` row mt-1 border-bottom pb-1" id="detalle_` + respuesta.id_det + `" data-id="` + respuesta.id_det + `">
+                <div class="col-6 text-start pe-0">
+                  <label class="fs-5 d-block">` + respuesta.nombre + `</label>
+                  <label class="fs-5 d-block">Cantidad: ` + respuesta.cantidad + `</label>
+                </div>`;
+            if (contable == '1') {
+              html += `
+                <div class="col-3 ps-0">
+                  <label class="d-block">&nbsp;</label>
+                  <label class="fs-5">Q. ` + respuesta.subtotal + `</label>
+                </div>`;
+            } else {
+              html += '<div class="col-3 ps-0"></div>';
+            }
             html += `
-              <div class="col-3 ps-0">
-                <label class="d-block">&nbsp;</label>
-                <label class="fs-5">Q. ` + respuesta.subtotal + `</label>
+                <div class="col-3 ps-0">
+                  <a href="#" onclick="borrarBotella(` + respuesta.id_det + `, '` + respuesta.subtotal + `', ` + (contable == 0 ? (respuesta.id_tipo == 8 ? respuesta.cantidad : respuesta.mixers) : respuesta.mixers) + `, ` + respuesta.contable + `);" class="btn btn-danger"><i data-feather="trash"></i></a>
+                </div>
               </div>`;
-          } else {
-            html += '<div class="col-3 ps-0"></div>';
-          }
-          html += `
-              <div class="col-3 ps-0">
-                <a href="#" onclick="borrarBotella(` + respuesta.id_det + `, '` + respuesta.subtotal + `', ` + (contable == 0 ? (respuesta.id_tipo == 8 ? respuesta.cantidad : respuesta.mixers) : respuesta.mixers) + `, ` + respuesta.contable + `);" class="btn btn-danger"><i data-feather="trash"></i></a>
-              </div>
-            </div>`;
 
-          if (contable == '1') {
-            html = html.replace('0)', '1)');
-            $('#totales').prepend(html);
+            if (contable == '1') {
+              html = html.replace('0)', '1)');
+              $('#totales').prepend(html);
 
-            var totales = parseFloat($('#total').html().replace(/,/g,''));
-            totales = totales + parseFloat(respuesta.subtotal.replace(/,/g,''));
-            $('#total').html(numberWithCommas(totales.toFixed(2)))
+              var totales = parseFloat($('#total').html().replace(/,/g,''));
+              totales = totales + parseFloat(respuesta.subtotal.replace(/,/g,''));
+              $('#total').html(numberWithCommas(totales.toFixed(2)))
 
-            var saldo = saldoTotal - totales;
-            $('#saldo').html(numberWithCommas(saldo.toFixed(2)))
+              var saldo = saldoTotal - totales;
+              $('#saldo').html(numberWithCommas(saldo.toFixed(2)))
 
-            if (respuesta.mixers > 0) {
-              mixerGratis += parseInt(respuesta.mixers) * cantidad;
-              $('#total-mixers').html(mixerGratis);
+              if (respuesta.mixers > 0) {
+                mixerGratis += parseInt(respuesta.mixers) * cantidad;
+                $('#total-mixers').html(mixerGratis);
 
-              prod_asoc = respuesta.prod_asoc;
-              prod_asoc = JSON.parse(prod_asoc);
-              for (i = 0; i <= (prod_asoc.length - 1); i++) {
-                ejectuarAgregar(id_pedido, prod_asoc[i]['id'], 0, prod_asoc[i]['cnt'], respuesta.id_det);
+                prod_asoc = respuesta.prod_asoc;
+                prod_asoc = JSON.parse(prod_asoc);
+                for (i = 0; i <= (prod_asoc.length - 1); i++) {
+                  ejectuarAgregar(id_pedido, prod_asoc[i]['id'], 0, prod_asoc[i]['cnt'], respuesta.id_det);
+                }
+              }
+            } else {
+              $('#contenedor-mixers').append(html);
+
+              if (mixerGratis > 0) {
+                mixerGratis -= parseInt(respuesta.cantidad)
+                $('#total-mixers').html(mixerGratis);
+              }
+              
+              var totales = parseFloat($('#total').html().replace(/,/g,''));            
+              if (totales > 0) {
+                if (mixerGratis == 0) {
+                  $('div#boton-cobrar').removeClass('d-none').addClass('d-block');
+                  $('#btn-mixers-gratis').hide();
+                  $('#mixers-gratis').slideUp();
+                } else {
+                  $('div#boton-cobrar').removeClass('d-block').addClass('d-none');
+                  $('#btn-mixers-gratis').removeAttr('style');
+                }
               }
             }
+
+            feather.replace();
+
+            if (!respuesta.guardado) {
+              Swal.fire({
+                icon: 'danger',
+                text: 'ERROR: INTENTA DE NUEVO',
+                timer: 2000
+              })
+            };
           } else {
-            $('#contenedor-mixers').append(html);
-
-            if (mixerGratis > 0) {
-              mixerGratis -= parseInt(respuesta.cantidad)
-              $('#total-mixers').html(mixerGratis);
-            }
-            
-            var totales = parseFloat($('#total').html().replace(/,/g,''));            
-            if (totales > 0) {
-              if (mixerGratis == 0) {
-                $('div#boton-cobrar').removeClass('d-none').addClass('d-block');
-                $('#btn-mixers-gratis').hide();
-                $('#mixers-gratis').slideUp();
-              } else {
-                $('div#boton-cobrar').removeClass('d-block').addClass('d-none');
-                $('#btn-mixers-gratis').removeAttr('style');
-              }
-            }
-          }
-
-          feather.replace();
-
-          if (!respuesta.guardado) {
             Swal.fire({
-              icon: 'danger',
-              text: 'ERROR: INTENTA DE NUEVO',
-              timer: 2000
+              icon: 'info',
+              text: 'NO HAY SUFICIENTES PRODUCTOS DISPONIBLES PARA DESPACHAR (' + respuesta.stock + ' PRODUCTO' + (respuesta.stock > 1 ? 'S' : '') + ' DISPONIBLE' + (respuesta.stock > 1 ? 'S' : '') + ').',
+              timer: 6000
             })
-          };
+          }
         }
       }).fail( function(jqXHR, textStatus, errorThrown) {
         Swal.fire({

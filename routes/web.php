@@ -140,7 +140,9 @@ Route::group(['prefix' => 'admin',"namespace"=>'admin'],function() {
     Route::get('/borrar_mesas_asignadas/{id?}', 'reservasController@borrar_mesas_asignadas')->name('borrar_mesas_asignadas');
     Route::get('/borrar_reservacion/{id_mesa?}', 'reservasController@borrar_reservacion')->name('borrar_reservacion');
 
-    Route::get('/control_de_ingreso', 'reservasController@control_de_ingreso')->name('control_de_ingreso');
+    Route::get('/control_de_ingreso', 'reservasController@control_de_ingreso')->name('admin.checkpoint.ingreso');
+    Route::get('/info_control_de_ingreso', 'reservasController@info_control_de_ingreso')->name('info_control_de_ingreso');
+    Route::get('/ingreso_sin_lista/{id_evento?}', 'reservasController@ingreso_sin_lista')->name('ingreso_sin_lista');
 
     Route::get('/marcar_ingreso/{id_invitado?}/{valor?}', 'reservasController@marcar_ingreso')->name('admin.reservas.ingresos');
     

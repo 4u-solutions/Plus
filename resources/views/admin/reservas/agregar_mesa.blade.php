@@ -291,7 +291,7 @@
                 feather.replace();
 
                 if (id_lider == '+') {
-                  var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + respuesta.id + "/1"
+                  var ruta = "/admin/agregar_lider_a_mesa/" + id_mesa + "/" + respuesta.id + "/" + respuesta.accion
                   console.log(ruta)
                   $.ajax({
                       type: "GET",

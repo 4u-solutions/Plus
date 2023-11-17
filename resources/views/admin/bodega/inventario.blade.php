@@ -30,7 +30,7 @@
               </div>
             </div>
             <div class="row" id="panel-principal">
-              <div class="col-6 col-sm-6 col-md-5">
+              <div class="col-6 col-sm-6 col-md-4">
                 <div class="row">
                   <div class="col-8 col-sm-9 border bg-dark">
                     <label class="text-light py-1 fs-3"> Producto </label>
@@ -41,53 +41,76 @@
                   @foreach ($productos as $item)
                     @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
                     @php $final = $actual - $item->vendido; @endphp
-                    <div class="col-8 col-sm-9 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-8 col-sm-9 border {{$final <= 0 ? 'bg-danger text-light' : ''}}">
                       <label class="fs-3 pt-1"> {{$item->nombre}} </label>
                     </div>
-                    <div class="col-4 col-sm-3 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
-                      <input class="d-inline-block form-control my-1 text-center {{$final == 0 ? 'bg-danger text-light' : ''}}" id="inicial_{{$item->id}}" name="inicial_{{$item->id}}" type="text" value="{{$item->inicial ?: 0}}" disabled />
+                    <div class="col-4 col-sm-3 border {{$final <= 0 ? 'bg-danger text-light' : ''}}">
+                      <input class="d-inline-block form-control my-1 text-center {{$final <= 0 ? 'bg-danger text-light' : ''}}" id="inicial_{{$item->id}}" name="inicial_{{$item->id}}" type="text" value="{{$item->inicial ?: 0}}" disabled />
                       <input type="hidden" id="precio_{{$item->id}}" class="precio_producto" rel="{{$item->id}}" value="{{$item->precio ?: 0}}"/>
                     </div>
                   @endforeach
 
                   <div class="col-12 border">
-                      <button class="btn btn-primary my-1 w-100" style="">
+                      <button class="btn btn-dark my-1 w-100" style="">
                           {{ @$edit ? 'Actualizar datos' : 'Guardar'}}
                       </button>
                   </div>
                 </div>
               </div>
 
-              <div class="col-6 col-sm-6 col-md-7" style="overflow-x: scroll;">
-                <div class="row" style="width: 165%;" id="panel-derecho">
-                  <div class="col-2 border bg-dark">
+              <div class="col-6 col-sm-6 col-md-8" style="overflow-x: scroll;">
+                @php $widthR = 250; @endphp
+                @php $numCol = 10; @endphp
+                @php $widthC = (1 - (($widthR - ($widthR / $numCol)) / $widthR)) * 100; @endphp
+
+                <style type="text/css">
+                  .widthC { width: {{$widthC}}% !important; }
+                </style>
+                <div class="row" style="width: {{$widthR}}%;" id="panel-derecho">
+                  <div class="col-1 border bg-dark widthC text-center">
+                    <label class="text-light py-1 fs-3"> Precio </label>
+                  </div>
+                  <div class="col-1 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Inicial físico </label>
                   </div>
-                  <div class="col-2 border bg-dark">
+                  <div class="col-1 border bg-dark widthC text-center">
+                    <label class="text-light py-1 fs-3"> Valor inicial f. </label>
+                  </div>
+                  <div class="col-1 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Recargas </label>
                   </div>
-                  <div class="col-1 border bg-dark">
+                  <div class="col-1 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Actual </label>
                   </div>
-                  <div class="col-2 border bg-dark">
+                  <div class="col-1 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Despachado </label>
                   </div>
-                  <div class="col-1 border bg-dark">
+                  <div class="col-1 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Final </label>
                   </div>
-                  <div class="col-2 col-sm-2 border bg-dark">
+                  <div class="col-1 col-sm-2 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Final físico </label>
                   </div>
-                  <div class="col-2 col-sm-2 border bg-dark">
+                  <div class="col-1 border bg-dark widthC text-center">
+                    <label class="text-light py-1 fs-3"> Valor final f. </label>
+                  </div>
+                  <div class="col-1 col-sm-2 border bg-dark widthC text-center">
                     <label class="text-light py-1 fs-3"> Total venta </label>
                   </div>
                   @foreach ($productos as $item)
                     @php $actual = ($item->cantidad_inicial ?: $item->inicial) + $item->recarga; @endphp
                     @php $final = $actual - $item->vendido; @endphp
-                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
+                      <input class="d-inline-block form-control my-1 text-center" id="precio_{{$item->id}}" name="precio_{{$item->id}}" type="text" value="Q. {{number_format($item->precio)}}" disabled />
+                    </div>
+                    <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <input class="d-inline-block form-control my-1 text-center {{$item->inicial == $item->cantidad_inicial ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_inicial" name="inventario_inicial[{{$item->id}}][]" data-titulo="{{$item->nombre}}" type="text" value="{{$item->cantidad_inicial ?: 0}}" onClick="this.select();" autocomplete="off" />
                     </div>
-                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
+                      @php @$total_venta_inicial += ($item->precio * ($item->cantidad_inicial ?: $item->inicial)); @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="vinicial_{{$item->id}}" name="vinicial_{{$item->id}}" type="text" value="Q. {{number_format($item->precio * ($item->cantidad_inicial ?: $item->inicial))}}" disabled />
+                    </div>
+                    <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <div class="row">
                         <div class="col-6 p-0">
                           <input disabled="true" class="d-inline-block form-control my-1 ms-1 text-center" rel="{{$item->id}}" id="recarga_{{$item->id}}" name="recarga[{{$item->id}}][]" type="text" value="{{$item->recarga ?: 0}}" onClick="this.select();" />
@@ -100,19 +123,23 @@
                         </div>
                       </div>
                     </div>
-                    <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <input class="d-inline-block form-control my-1 text-center" id="actual_{{$item->id}}" name="actual_{{$item->id}}" type="text" value="{{($actual) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <input class="d-inline-block form-control my-1 text-center" id="ventas_{{$item->id}}" name="ventas_{{$item->id}}" type="text" value="{{($item->vendido) ?: 0}}" disabled />
                     </div>
-                    <div class="col-1 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <input class="d-inline-block form-control my-1 text-center" id="final_{{$item->id}}" name="final_{{$item->id}}" type="text" value="{{($final) ?: 0}}" disabled />
                     </div>
-                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <input class="form-control my-1 text-center {{($actual - $item->vendido) == $item->cantidad_final ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_final" name="inventario_final[{{$item->id}}][]" type="text" value="{{$item->cantidad_final ?: 0}}" data-titulo="{{$item->nombre}}" onClick="this.select();" autocomplete="off" />
                     </div>
-                    <div class="col-2 border {{$final == 0 ? 'bg-danger text-light' : ''}}">
+                    <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
+                      @php @$total_venta_final += ($item->precio * $item->cantidad_final); @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="vfinal_{{$item->id}}" name="vfinal_{{$item->id}}" type="text" value="Q. {{number_format(($item->precio * $item->cantidad_final) ?: 0)}}" disabled />
+                    </div>
+                    <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       @php @$subtotal = ((isset($item->cantidad_final) ? $item->cantidad_final : (isset($final) ? $final : $actual)) * $item->precio) ?: 0; @endphp
 
                       @php @$subtotal = $item->cantidad_final ? (($item->cantidad_inicial - $item->cantidad_final) * $item->precio) : 0; @endphp
@@ -121,16 +148,20 @@
                     </div>
                   @endforeach
 
-                  <div class="col-2 border">
-                    <a class="btn btn-primary my-1 w-100" href="#" onclick="CopiarConteoFisico(1, this)">Copiar</a>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border bg-dark widthC text-center">
+                    <label class="text-light py-1 fs-3"> Q. {{number_format($total_venta_inicial)}} </label>
                   </div>
-                  <div class="col-6 border"></div>
-                  <div class="col-2 border">
-                    <a class="btn btn-primary my-1 w-100" href="#" onclick="CopiarConteoFisico(2, this)">Copiar</a>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border widthC"></div>
+                  <div class="col-1 border bg-dark widthC text-center">
+                    <label class="text-light py-1 fs-3"> Q. {{number_format($total_venta_final)}} </label>
                   </div>
-                  <div class="col-2 border">
-                    <h1 class="d-block text-center mt-1" id="precio_total">Q. {{number_format($total)}}</h1>
-                  </div>
+                  <div class="col-1 border widthC"></div>
                 </div>
               </div>
             </div>
@@ -239,6 +270,11 @@
         } else {
           $(this).removeClass('bg-danger').removeClass('border-danger').removeClass('text-light');
         }
+
+        var inicial = parseInt($(this).val());
+        var precio = parseInt($('#precio_' + id).val())
+        var vfinal = precio * inicial;
+        $('#vinicial_' + id).val('Q. ' + numberWithCommas(vfinal));
       });
 
       $('input#inventario_final').keyup(function() {
@@ -251,6 +287,10 @@
         } else {
           $(this).removeClass('bg-danger').removeClass('border-danger').removeClass('text-light');
         }
+
+        var precio = parseInt($('#precio_' + id).val())
+        var vfinal = precio * final;
+        $('#vfinal_' + id).val('Q. ' + numberWithCommas(vfinal));
       });
 
       $('body').on('click', '#cantidad-mas', function(){
@@ -280,11 +320,11 @@
       $(window).resize(function(){
         ancho = $(window).width();
         if (ancho < 425) {
-          $('#panel-derecho').css('width', (ancho / 0.7) + '%')
+          // $('#panel-derecho').css('width', (ancho / 0.7) + '%')
           $('#panel-alerta').show();
           $('#panel-principal').hide();
         } else {
-          $('#panel-derecho').css('width', (ancho / 2.5) + '%')
+          // $('#panel-derecho').css('width', (ancho / 2.5) + '%')
           $('#panel-alerta').hide();
           $('#panel-principal').show();
         }
@@ -314,15 +354,15 @@
 
     var ancho = $(window).width();
     if (ancho < 550) {
-      $('#panel-derecho').css('width', (ancho / 0.7) + '%')
+      // $('#panel-derecho').css('width', (ancho / 0.7) + '%')
       $('#panel-alerta').show();
       $('#panel-principal').hide();
     } else {
-      if (ancho > 1000) { 
-        $('#panel-derecho').css('width', (ancho / 6) + '%')
-      } else {
-        $('#panel-derecho').css('width', (ancho / 2.5) + '%')
-      }
+      // if (ancho > 1000) { 
+      //   $('#panel-derecho').css('width', (ancho / 6) + '%')
+      // } else {
+      //   $('#panel-derecho').css('width', (ancho / 2.5) + '%')
+      // }
       $('#panel-alerta').hide();
       $('#panel-principal').show();
     }

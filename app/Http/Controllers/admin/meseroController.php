@@ -133,11 +133,16 @@ class meseroController extends Controller
     $dia_despues = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
 
     $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
-    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if (ai2.cantidad_final, ai2.cantidad_final, if (ai2.cantidad_inicial, ai2.cantidad_inicial + ai2.recarga, if (ai.cantidad_final, ai.cantidad_final, ai.cantidad_inicial + ai.recarga))) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '2023-09-06') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and contable and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo not in (8, 10) order by mas_vendido desc;";
-    // echo $str; exit();
+
+    $ultima_fecha_compra = @DB::select("select fecha from admin_inventario_ingresos where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
+
+
+    $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha));
+    $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
+    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if ( ai2.cantidad_inicial is not null, if ( aii.ingreso is not null, aii.ingreso + ( if ( ai2.recarga is not null, ai2.recarga, 0 ) ), if ( ai2.recarga is not null, ai2.recarga, if ( ai.cantidad_final is not null, ai.cantidad_final, 0 ) ) ), ai2.cantidad_inicial ) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$ultima_fecha_compra') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and contable and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo not in (8, 10) order by mas_vendido desc;";
     $productos = DB::select($str);
 
-    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if (ai2.cantidad_final, ai2.cantidad_final, if (ai2.cantidad_inicial, ai2.cantidad_inicial + ai2.recarga, if (ai.cantidad_final, ai.cantidad_final, ai.cantidad_inicial + ai.recarga))) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '2023-09-06') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo in (8) order by mas_vendido desc;";
+    $str = "select distinct ap.id, ap.nombre, ap.precio, ap.mixers, ap.id_tipo, atw.color, if ( ai2.cantidad_inicial is not null, if ( aii.ingreso is not null, aii.ingreso + ( if ( ai2.recarga is not null, ai2.recarga, 0 ) ), if ( ai2.recarga is not null, ai2.recarga, if ( ai.cantidad_final is not null, ai.cantidad_final, 0 ) ) ), ai2.cantidad_inicial ) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock, producto_mas_vendido.cantidad mas_vendido from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$ultima_fecha_compra') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and despachado and estado group by id_producto) producto_mas_vendido on (ap.id = producto_mas_vendido.id_producto) where ap.estado and ap.id_tipo in (8) order by mas_vendido desc;";
     $mixers = DB::select($str);
 
     $data = [];
@@ -185,47 +190,69 @@ class meseroController extends Controller
   }
 
   public function cargar_productos($id_pedido, $id_producto, $cantidad, $contable) {
-    $str     = "select * from admin_productos where id = $id_producto;";
-    $prod = DB::select($str)[0];
+    $fecha       = date('Y-m-d');
+    $dia_despues = date('Y-m-d', strtotime("+1 day", strtotime($fecha)));
 
-    $prod_asoc = array();
-    for ($i = 1; $i <= $cantidad; $i++) {
-      $prod_asoc[] = $prod->productos_asociados;
-    }
-    $prod->productos_asociados = implode(',', $prod_asoc);
+    $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
 
-    $prod_cant = array();
-    foreach(explode(',', $prod->productos_asociados) as $key => $value) {
-      @$prod_cant[$value] += 1;
-    }
-    $prod_asoc = array();
-    foreach($prod_cant as $key => $value) {
-      $prod_asoc[] = array(
-        'id'  => $key,
-        'cnt' => $value
+    $ultima_fecha_compra = @DB::select("select fecha from admin_inventario_ingresos where fecha < '$fecha' order by fecha desc limit 1;")[0]->fecha;
+
+
+    $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha));
+    $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
+
+    $str = "select distinct ap.id, ap.nombre, if ( ai2.cantidad_inicial is not null, if ( aii.ingreso is not null, aii.ingreso + ( if ( ai2.recarga is not null, ai2.recarga, 0 ) ), if ( ai2.recarga is not null, ai2.recarga, if ( ai.cantidad_final is not null, ai.cantidad_final, 0 ) ) ), ai2.cantidad_inicial ) - if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad) stock from admin_productos ap left join admin_tipo_waro atw on (ap.id_tipo = atw.id) left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '$fecha') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha = '$ultima_fecha_compra') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle where aprobado and estado and created_at between '$fecha " . config('global.horario_apertura') . "' and '$dia_despues " . config('global.horario_cierre') . "' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado and ap.id = $id_producto;";
+    $stock = DB::select($str)[0];
+
+    if ($cantidad <= $stock->stock) {
+      $str     = "select * from admin_productos where id = $id_producto;";
+      $prod = DB::select($str)[0];
+
+      $prod_asoc = array();
+      for ($i = 1; $i <= $cantidad; $i++) {
+        $prod_asoc[] = $prod->productos_asociados;
+      }
+      $prod->productos_asociados = implode(',', $prod_asoc);
+
+      $prod_cant = array();
+      foreach(explode(',', $prod->productos_asociados) as $key => $value) {
+        @$prod_cant[$value] += 1;
+      }
+      $prod_asoc = array();
+      foreach($prod_cant as $key => $value) {
+        $prod_asoc[] = array(
+          'id'  => $key,
+          'cnt' => $value
+        );
+      }
+
+      $model = pedidosDetalleModel::create([
+        'id_pedido'   => $id_pedido,
+        'id_producto' => $id_producto,
+        'cantidad'    => $cantidad,
+        'subtotal'    => $prod->precio * $cantidad,
+        'contable'    => $contable,
+      ]);
+      $guardado = $model->save() ? true : false;
+
+      $data = array(
+        'id_det'   => $model->id,
+        'nombre'   => $prod->nombre,
+        'mixers'   => $prod->mixers,
+        'subtotal' => number_format($prod->precio * $cantidad, 2,".",","),
+        'cantidad' => $cantidad,
+        'guardado' => $guardado,
+        'contable' => $contable,
+        'id_tipo'  => $prod->id_tipo,
+        'prod_asoc' => json_encode($prod_asoc),
+        'error'    => false
+      );
+    } else {
+      $data = array(
+        'error' => true,
+        'stock' => $stock->stock
       );
     }
-
-    $model = pedidosDetalleModel::create([
-      'id_pedido'   => $id_pedido,
-      'id_producto' => $id_producto,
-      'cantidad'    => $cantidad,
-      'subtotal'    => $prod->precio * $cantidad,
-      'contable'    => $contable,
-    ]);
-    $guardado = $model->save() ? true : false;
-
-    $data = array(
-      'id_det'   => $model->id,
-      'nombre'   => $prod->nombre,
-      'mixers'   => $prod->mixers,
-      'subtotal' => number_format($prod->precio * $cantidad, 2,".",","),
-      'cantidad' => $cantidad,
-      'guardado' => $guardado,
-      'contable' => $contable,
-      'id_tipo'  => $prod->id_tipo,
-      'prod_asoc' => json_encode($prod_asoc)
-    );
 
     return json_encode($data);
   }

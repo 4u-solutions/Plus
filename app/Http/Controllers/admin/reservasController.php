@@ -18,6 +18,7 @@ use App\adminModels\eventosMesasPagosModel;
 use App\adminModels\eventosMesasVenuesModel;
 use App\adminModels\eventosMesasVenuesUbicaciones;
 use App\adminModels\eventosVenuesSectoresMesasModel;
+use App\adminModels\eventosMesasInvitadosSinListaModel;
 use App\Http\Controllers\exports\reportePorPax;
 use Excel;
 
@@ -1093,11 +1094,22 @@ class reservasController extends Controller
 
       // dd ($data);
 
+      $accion = 1;
       if ($id) {
         DB::table('admin_users')->where('id', $id)->update($data);
       } else {
         $data['usersys'] = 'themanor' . ($uid + 1);
         $lider = UserAdmin::create($data);
+
+        $str = "select * from admin_eventos_invitados where nombre = '" . $lider->name . "' and estado;";
+        $invitado = @DB::select($str)[0];
+        if (@$invitado->id) {
+          $accion = 0;
+
+          DB::table('admin_eventos_invitados')->where('id', $invitado->id)->update([
+            'id_lider' => $lider->id
+          ]);
+        }
       }
 
       if ($nombre) {
@@ -1105,6 +1117,7 @@ class reservasController extends Controller
           array(
             'nombre' => $lider->name,
             'id'     => $lider->id,
+            'accion' => $accion
           )
         );
       } else {
@@ -1158,15 +1171,42 @@ class reservasController extends Controller
     ]);
   }
 
-  function reporte_meseros_sin_asignar($id_evento = null) {
+  private function obtener_evento_sin_asignar($id_evento = 0) {
     if (!$id_evento) {
       $str = "select * from admin_eventos where estado and fecha >= '" . date('Y-m-d') . "' order by fecha limit 1;";
       $evento = DB::select($str)[0];  
-      $id_evento = $evento->id;
     } else {
       $str = "select * from admin_eventos where estado and id = $id_evento;";
       $evento = DB::select($str)[0];  
     }
+
+    return $evento;
+  }
+
+  function reporte_pull($id_evento = 0) {
+    $evento = $this->obtener_evento_sin_asignar($id_evento);
+    $id_evento = $evento->id;
+
+    $str = "select mesas.*, pull.nombre pull, (cantidad_invitados.mujeres * pull.monto_mujeres) total_pull_mujeres, (cantidad_invitados.hombres * pull.monto_hombres) total_pull_hombres, (pull_pagado.mujeres * pull.monto_mujeres) pull_mujeres, (pull_pagado.hombres * pull.monto_hombres) pull_hombres from admin_eventos_mesas mesas left join admin_eventos eventos on (mesas.id_evento = eventos.id) left join admin_eventos_mesas_pull pull on (mesas.id_pull = pull.id) left join (select mesas_invitados.id_mesa, sum(if(invitados.sexo = 1, 1, 0)) hombres, sum(if(invitados.sexo = 0, 1, 0)) mujeres from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where invitados.estado and pull_pagado group by mesas_invitados.id_mesa) pull_pagado on (mesas.id = pull_pagado.id_mesa) left join (select id_mesa, sum(if(invitados.sexo = 1, 1, 0)) hombres, sum(if(invitados.sexo = 0, 1, 0)) mujeres from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where mesas_invitados.estado and invitados.estado and mesas_invitados.estado group by id_mesa) cantidad_invitados on (mesas.id = cantidad_invitados.id_mesa) where mesas.estado and mesas.id_pull and mesas.pull and eventos.id = $id_evento;";
+    $data = DB::select($str);  
+
+    $str  = "select * from admin_eventos where estado and fecha >= '" . date('Y-m-d') . "' order by fecha;";
+    $eventos = DB::select($str); 
+
+    $array_mes = array(1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre');
+
+    return view('admin.reportes.pull_por_reservacion', [
+      'menubar'   => $this->list_sidebar(),
+      'data'      => $data,
+      'eventos'   => $eventos,
+      'array_mes' => $array_mes,
+      'evento'    => $evento,
+    ]);
+  }
+
+  function reporte_meseros_sin_asignar($id_evento = null) {
+    $evento = $this->obtener_evento_sin_asignar($id_evento);
+    $id_evento = $evento->id;
 
     $str = "select name, id from admin_users where statusUs and roleUs = 4 and id not in (select mesas.id_mesero from admin_eventos_venues_sectores_mesas sectores_mesas left join admin_eventos_mesas mesas on (sectores_mesas.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and eventos.id = $id_evento);";
     $data = DB::select($str); 
@@ -1187,14 +1227,8 @@ class reservasController extends Controller
   }
 
   function reporte_por_pax($id_evento = null, $reporte = false) {
-    if (!$id_evento) {
-      $str = "select * from admin_eventos where estado and fecha >= '" . date('Y-m-d') . "' order by fecha limit 1;";
-      $evento = DB::select($str)[0];  
-      $id_evento = $evento->id;
-    } else {
-      $str = "select * from admin_eventos where estado and id = $id_evento;";
-      $evento = DB::select($str)[0];  
-    }
+    $evento = $this->obtener_evento_sin_asignar($id_evento);
+    $id_evento = $evento->id;
 
     $str = "select distinct venues.tot_ubicaciones, eventos.pax, eventos.pagado de_pago, mesas.nombre lider, mesas.id, if (invitados.invitados is null, 0, invitados.invitados) invitados, if (mesas.id_area = 1, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_mesas, if (mesas.id_area = 2, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_barras, if(mujeres.mujeres is null, 0, mujeres.mujeres) mujeres, if (hombres.hombres is null, 0, hombres.hombres) hombres, if (pagados.pagados is null, 0, pagados.pagados) pagados, if (duplicados.duplicados is null, 0 , duplicados.duplicados) duplicados, max_pax_area, mesas.id_area, if (mesas.id_area = 1, if (round(invitados / max_pax_area) is null, 1, if (round(invitados / max_pax_area) <= 0, 1, round(invitados / max_pax_area))), 0) tot_mesas, if (mesas.id_area = 2, 1, 0) tot_barras, celebraciones.celebracion from admin_eventos_mesas mesas left join admin_eventos eventos on (eventos.id = mesas.id_evento and eventos.estado) left join admin_eventos_venues venues on (eventos.id_venue = venues.id and venues.estado) left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (mesas.id = invitados.id_mesa) left join (select count(mesas_invitados.id) mujeres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 0 and mesas_invitados.estado group by id_mesa) mujeres on (mesas.id = mujeres.id_mesa) left join (select count(mesas_invitados.id) hombres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 1 and mesas_invitados.estado group by id_mesa) hombres on (mesas.id = hombres.id_mesa) left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (mesas.id = pagados.id_mesa) left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (mesas.id = duplicados.id_mesa) left join admin_eventos_mesas_celebraciones celebraciones on (mesas.id_celebracion = celebraciones.id)  where mesas.estado and mesas.id_evento = " . $id_evento . " order by mesas.id_area, invitados desc;";
     // echo $str; exit();
@@ -1219,7 +1253,7 @@ class reservasController extends Controller
     if ($reporte) {
       $data['mesas_disponibles'] = $tot_ubicaciones - @$tot_mesas;
       $fecha = substr($evento->fecha, 8, 2) . ' de ' . $array_mes[(int)substr($evento->fecha, 5, 2)];
-      return Excel::download(new reportePorPax($data, $fecha), 'prueba.xlsx');
+      return Excel::download(new reportePorPax($data, $fecha), 'Reporte de reservaciones ' . $evento->fecha  . ' .xlsx');
     } else {
       return view('admin.reservas.reporte_por_pax', [
         'menubar'       => $this->list_sidebar(),
@@ -1238,10 +1272,8 @@ class reservasController extends Controller
   }
 
   function reporte_estadisticas($id_evento = null) {
-    if (!$id_evento) {
-      $str = "select * from admin_eventos where estado and fecha >= '" . date('Y-m-d') . "' order by fecha limit 1;";
-      $id_evento = DB::select($str)[0]->id;
-    }
+    $evento = $this->obtener_evento_sin_asignar($id_evento);
+    $id_evento = $evento->id;
 
     $str  = "select count(admin_eventos_mesas_invitados.id) total from admin_eventos_mesas_invitados left join admin_eventos_mesas on (admin_eventos_mesas.id = admin_eventos_mesas_invitados.id_mesa)  where admin_eventos_mesas_invitados.estado and admin_eventos_mesas.estado and id_evento = $id_evento;";
     $total_invitados = DB::select($str)[0]->total;  
@@ -1379,9 +1411,53 @@ class reservasController extends Controller
     ]);
   }
 
+  public function info_control_de_ingreso() {
+    $fecha = date('Y-m-d');
+
+    $str = "select count(invitados.id) ingresados from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha' and ingreso;";
+    $ingresados = DB::select($str)[0]->ingresados;
+
+    $str = "select count(invitados.id) total_invitados from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha';";
+    $total_invitados = DB::select($str)[0]->total_invitados;
+
+    $str = "select count(invitados.id) pendientes_ingreso from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha' and ingreso = 0;";
+    $pendientes_ingreso = DB::select($str)[0]->pendientes_ingreso;
+
+    $str = "select count(sin_lista.id) sin_lista from admin_eventos_mesas_invitados_sin_lista sin_lista left join admin_eventos eventos on (sin_lista.id_evento = eventos.id) where eventos.estado and fecha = '$fecha';";
+    $sin_lista = DB::select($str)[0]->sin_lista;
+
+    // echo 'total: ' . $total_invitados . '<br>';
+    // echo 'ingresados: ' . $ingresados . '<br>';
+    // echo 'pendientes: ' . $pendientes_ingreso . '<br>';
+
+    $porcentaje_pendiente = $ingresados == 0 ? '100' : floor((1 - (($total_invitados - $pendientes_ingreso) / $total_invitados)) * 100);
+    $data = [
+      'ingresados'            => $ingresados,
+      'pendientes_ingreso'    => $pendientes_ingreso,
+      'total_invitados'       => $total_invitados,
+      'porcentaje_pendientes' => $porcentaje_pendiente,
+      'porcentaje_ingreso'    => 100 - $porcentaje_pendiente,
+      'sin_lista'             => $sin_lista
+    ];
+
+    return json_encode($data);
+  }
+
+  public function ingreso_sin_lista($id_evento = 0) {
+    $ingreso_sin_lista = eventosMesasInvitadosSinListaModel::create([
+      'id_evento' => $id_evento
+    ]);
+
+    return json_encode($ingreso_sin_lista);
+  }
+
   public function control_de_ingreso() {
     $fecha = date('Y-m-d');
     // $fecha = '2023-11-11';
+
+    $str = "select * from admin_eventos where fecha = '$fecha' and estado;";
+    $evento = @DB::select($str)[0];
+
     $str = "select mesas.id id_mesa, mesas_invitados.id, id_invitado, invitados.nombre, mesas_invitados.ingreso, mesas.nombre mesa, mesas.id_area, meseros.name mesero from admin_eventos_invitados invitados left join admin_eventos_mesas_invitados mesas_invitados on (invitados.id = mesas_invitados.id_invitado) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) left join admin_users meseros on (mesas.id_mesero = meseros.id) where invitados.estado and mesas_invitados.estado and mesas.estado and eventos.estado and eventos.fecha = '$fecha' order by invitados.nombre limit 25;";
     $data = DB::select($str);
 
@@ -1397,23 +1473,12 @@ class reservasController extends Controller
       @$data[$key]->nombre_sin_acento = $this->eliminar_acentos($item->nombre);
     }
 
-    $str = "select count(invitados.id) ingresados from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha' and ingreso;";
-    $ingresados = DB::select($str)[0]->ingresados;
-
-    $str = "select count(invitados.id) total_invitados from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha';";
-    $total_invitados = DB::select($str)[0]->total_invitados;
-
-    $str = "select count(invitados.id) pendientes_ingreso from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas.estado and invitados.estado and eventos.fecha = '$fecha' and ingreso = 0;";
-    $pendientes_ingreso = DB::select($str)[0]->pendientes_ingreso;
-
     // dd($data);
 
     return view('admin.reservas.ingresos', [
       'menubar' => $this->list_sidebar(),
-      'data'    => $data,
-      'ingresados' => $ingresados,
-      'pendientes_ingreso' => $pendientes_ingreso,
-      'total_invitados' => $total_invitados
+      'evento'  => $evento,
+      'data'    => $data
     ]);
   }
 
