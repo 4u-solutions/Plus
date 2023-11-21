@@ -38,7 +38,7 @@
         </div>
     @endif
 
-    <div class="row m-0">
+    <div class="row m-0 w-100">
         <div class="col-12">
             <h5 class="d-inline-block" style="font-size: 14px;">BIENVENIDO </h5>
             <h5 class="d-inline-block" style="font-size: 14px;">
@@ -51,7 +51,6 @@
                 @if (Config::get('nombre_mesero'))
                     / MESERO: {{Config::get('nombre_mesero')}}
                 @endif
-
             </h5>
         </div>
     </div>

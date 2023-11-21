@@ -385,7 +385,7 @@ class cobradorController extends Controller
       }
     }
 
-    $str = "select admin_users.*, admin_lista_meseros.id id_asignacion from admin_users left join admin_lista_meseros on (admin_users.id = admin_lista_meseros.id_mesero and fecha = '$fecha') where roleUS = 4 and statusUS order by name;";
+    $str = "select admin_users.*, admin_lista_meseros.id id_asignacion from admin_users left join admin_lista_meseros on (admin_users.id = admin_lista_meseros.id_mesero and fecha = '$fecha') where roleUS = 4 and es_plus and statusUS order by name;";
     $meseros = DB::select($str);
 
     return view('admin.cobrador.lista_meseros', [

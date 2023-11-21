@@ -22,6 +22,7 @@ class eventosMesasModel extends Model
     "area",
     "mesa",
     "id_mesero",
+    "id_mesero_2",
     "id_cobrador",
     "created_at",
     "updated_at"

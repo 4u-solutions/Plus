@@ -42,7 +42,11 @@
               @foreach ($data as $key => $item)
                 <div class="row mb-1 mesa_{{$item->id}}" id="mesa_contenedor" rel="{{$item->nombre_sin_acento}} ({{$item->evento}})">
                   <div class="col-12 border bg-dark">
-                    <label class="text-light py-1 fs-4"> {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->nombre}} ({{$item->evento}}) | Mesero: {{$item->mesero ?: 'Sin asignar'}}, Coordinador: {{$item->cobrador ?: 'Sin asignar'}}</label>
+                    <label class="text-light py-1 fs-4"> {{$item->id_area == 1 ? 'Mesa' : 'Barra'}}: {{$item->nombre}} ({{$item->evento}}) 
+                    @if ($item->id_area == 1)
+                      | Mesero: {{$item->mesero ?: 'Sin asignar'}}, Coordinador: {{$item->cobrador ?: 'Sin asignar'}}
+                    @endif
+                  </label>
                   </div>
                   <div class="col-4 border bg-dark">
                     <label class="text-light py-1 fs-4"> Detalle </label>

@@ -551,7 +551,7 @@
                   @else
                     @if ($evento->id_venue != 2)
                       @if (File::exists($public_path . 'menu/' . $i .'_0.jpg'))
-                        <img src="{{asset('menu/' . $i . '_0.jpg?')}}" class="w-100">
+                        <img src="{{asset('menu/' . $i . '_0.jpg?' . date('YmdHis'))}}" class="w-100">
                       @endif  
                     @endif
                   @endif

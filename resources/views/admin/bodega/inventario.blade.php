@@ -107,8 +107,8 @@
                       <input class="d-inline-block form-control my-1 text-center {{$item->inicial == $item->cantidad_inicial ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_inicial" name="inventario_inicial[{{$item->id}}][]" data-titulo="{{$item->nombre}}" type="text" value="{{$item->cantidad_inicial ?: 0}}" onClick="this.select();" autocomplete="off" />
                     </div>
                     <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
-                      @php @$total_venta_inicial += ($item->precio * ($item->cantidad_inicial ?: $item->inicial)); @endphp
-                      <input class="d-inline-block form-control my-1 text-center" id="vinicial_{{$item->id}}" name="vinicial_{{$item->id}}" type="text" value="Q. {{number_format($item->precio * ($item->cantidad_inicial ?: $item->inicial))}}" disabled />
+                      @php @$total_venta_inicial += $item->contable ? ($item->precio * ($item->cantidad_inicial ?: $item->inicial)) : 0; @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="vinicial_{{$item->id}}" name="vinicial_{{$item->id}}" type="text" value="Q. {{number_format($item->contable ? ($item->precio * ($item->cantidad_inicial ?: $item->inicial)) : 0)}}" disabled />
                     </div>
                     <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       <div class="row">
@@ -136,8 +136,8 @@
                       <input class="form-control my-1 text-center {{($actual - $item->vendido) == $item->cantidad_final ? '' : 'bg-danger border-danger text-light'}}" rel="{{$item->id}}" id="inventario_final" name="inventario_final[{{$item->id}}][]" type="text" value="{{$item->cantidad_final ?: 0}}" data-titulo="{{$item->nombre}}" onClick="this.select();" autocomplete="off" />
                     </div>
                     <div class="col-1 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
-                      @php @$total_venta_final += ($item->precio * $item->cantidad_final); @endphp
-                      <input class="d-inline-block form-control my-1 text-center" id="vfinal_{{$item->id}}" name="vfinal_{{$item->id}}" type="text" value="Q. {{number_format(($item->precio * $item->cantidad_final) ?: 0)}}" disabled />
+                      @php @$total_venta_final += $item->contable ? ($item->precio * $item->cantidad_final) : 0; @endphp
+                      <input class="d-inline-block form-control my-1 text-center" id="vfinal_{{$item->id}}" name="vfinal_{{$item->id}}" type="text" value="Q. {{number_format($item->contable ? (($item->precio * $item->cantidad_final) ?: 0) : 0)}}" disabled />
                     </div>
                     <div class="col-2 border {{$final <= 0 ? 'bg-danger text-light' : ''}} widthC">
                       @php @$subtotal = ((isset($item->cantidad_final) ? $item->cantidad_final : (isset($final) ? $final : $actual)) * $item->precio) ?: 0; @endphp

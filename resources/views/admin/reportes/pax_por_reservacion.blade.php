@@ -1,12 +1,8 @@
 <table>
     <thead>
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
       <tr>
         <td colspan="8" style="font-size:18px;font-weight:bold;height:35px;">
-          Reporte de reservaciones {{$fecha}} ({{$data['mesas_disponibles']}} mesas disponibles)
+          Reporte de reservaciones {{$fecha}}
         </td>
 
       </tr>
@@ -31,37 +27,47 @@
         @php @$sub_total_celebra   = 0; @endphp
         @if (isset($data[$id_area]))
           <tr>
-            <td colspan="5" style="text-align:left; font-weight:bold; font-size: 25px;">{{$id_area == 1 ? 'MESAS' : 'BARRAS'}}</td> 
+            <td colspan="5" style="text-align:left; font-weight:bold; font-size: 25px;">{{$id_area == 1 ? ('SOFAS ' .  ($data['mesas_disponibles'] . ' sofas disponibles')) : 'BARRAS'}}</td> 
           </tr>
           <tr>
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:25px;">No</th>
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:275px;" >Reservación</th>
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">En Lista</th>
+            @if ($id_area == 1)
+              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf; width: 50px;">Sofas</th>
+            @endif
+
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf; width: 100px;">En Lista</th>
+
+            @if ($id_area == 1)
+              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:125px;">Mesero</th>
+            @endif
+
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:175px;" >Reservación</th>
 
             @if ($data[$id_area][0]->de_pago)
               <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Pagados</th>
               <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Por pagar</th>
             @endif
 
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Mujeres</th>
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Hombres</th>
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:100px;">Mujeres</th>
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:100px;">Hombres</th>
 
-            @if ($id_area == 1)
-              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Mesas</th>
-            @endif
-
-            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Celebración</th>
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;width:100px;">Celebración</th>
           </tr>
 
-          @php @$no_lider = 1; @endphp
           @foreach($data[$id_area] as $key => $item)
             <tr>
-              <th style="text-align:center;border:1px solid black;">{{$no_lider}}</th>
+              @if ($id_area == 1)
+                @php @$sub_total_mesas += ($item->sofa_estimado ?: $item->tot_mesas); @endphp
+                <th style="text-align:center;border:1px solid black;">{{($item->sofa_estimado ?: $item->tot_mesas) ?: '-'}}</th>
+              @endif
+
+              @php @$sub_total_invitados += ($item->pax_estimado > $item->invitados ? $item->pax_estimado : $item->invitados); @endphp
+              <th style="text-align:center;border:1px solid black;">{{($item->pax_estimado > $item->invitados ? $item->pax_estimado : $item->invitados) ?: '-'}}</th>
+
+              @if ($id_area == 1)
+                <th style="text-align:center;border:1px solid black;">{{$item->meseros}}</th>
+              @endif
 
               <th style="text-align:center;border:1px solid black;">{{$item->lider}}</th>
-
-              @php @$sub_total_invitados += $item->invitados; @endphp
-              <th style="text-align:center;border:1px solid black;">{{$item->invitados ?: '-'}}</th>
 
               @if ($item->de_pago)
                 @php @$sub_total_pagados += $item->pagados; @endphp
@@ -77,20 +83,16 @@
               
               @php @$sub_total_hombres += $item->hombres; @endphp
               <th style="text-align:center;border:1px solid black;">{{$item->hombres ?: '-'}}</th>
-              
-              @if ($id_area == 1)
-                @php @$sub_total_mesas += $item->tot_mesas; @endphp
-                <th style="text-align:center;border:1px solid black;">{{$item->tot_mesas ?: '-'}}</th>
-              @endif
 
               @php @$sub_total_celebra += $item->celebracion ? 1 : 0; @endphp
               <th style="text-align:center;border:1px solid black;">{{$item->celebracion ?: 'Ninguna'}}</th>
             </tr>
-
-            @php $no_lider++; @endphp
           @endforeach
           <tr>
-            <th colspan="2" style="text-align:right;border:1px solid black;font-weight:bold;background: #dfdfdf;">Subtotales:</th>
+
+            @if ($id_area == 1)
+              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_mesas}}</th>
+            @endif
             <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_invitados}}</th>
 
             @if ($data[$id_area][0]->de_pago)
@@ -98,12 +100,13 @@
               <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_por_pagar}}</th>
             @endif 
 
+            @if ($id_area == 1)
+              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">-</th>
+            @endif
+            <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">-</th>
+
             <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_mujeres}}</th>
             <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_hombres}}</th>
-
-            @if ($id_area == 1)
-              <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_mesas}}</th>
-            @endif
 
             <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">{{$sub_total_celebra ?: '-'}}</th>
           </tr>
@@ -123,15 +126,11 @@
         @php @$total_celebra   += $sub_total_celebra; @endphp
       @endfor
 
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
-      <tr> <td></td> </tr>
       <tr>
         <td colspan="5" style="text-align:left; font-weight:bold; font-size: 25px;">RESUMEN</td> 
       </tr>
       <tr>
-        <th colspan="2" style="text-align:right;font-weight:bold;width: 25px"></th>
+        <th style="text-align:right;font-weight:bold;"></th>
         <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">En Lista</th>
 
         @if ($data[1][0]->de_pago)
@@ -141,12 +140,12 @@
 
         <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Mujeres</th>
         <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Hombres</th>
-        <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Mesas</th>
+        <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Sofas</th>
         <th style="text-align:center;border:1px solid black;font-weight:bold;background: #dfdfdf;">Celebración</th>
       </tr>
 
       <tr>
-        <th colspan="2" style="text-align:right;border:1px solid black;font-weight:bold;background: #dfdfdf;">Totales:</th>
+        <th style="text-align:right;border:1px solid black;font-weight:bold;background: #dfdfdf;">Totales:</th>
         <th style="text-align:center;border:1px solid black;font-weight:bold;">{{$total_invitados}}</th>
 
         @if ($data[1][0]->de_pago)

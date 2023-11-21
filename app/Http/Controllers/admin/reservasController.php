@@ -295,6 +295,7 @@ class reservasController extends Controller
         'id_area'       => $_POST['id_area'],
         'nombre'        => @$_POST['nombre'],
         'id_mesero'     => @$_POST['id_mesero'] ?: 0,
+        'id_mesero_2'   => @$_POST['id_mesero_2'] ?: 0,
         'id_cobrador_1' => @$_POST['id_cobrador_1'] ?: 0,
         'id_cobrador_2' => @$_POST['id_cobrador_2'] ?: 0,
         'id_jefe_1'     => @$_POST['id_jefe_1'] ?: 0,
@@ -1230,18 +1231,28 @@ class reservasController extends Controller
     $evento = $this->obtener_evento_sin_asignar($id_evento);
     $id_evento = $evento->id;
 
-    $str = "select distinct venues.tot_ubicaciones, eventos.pax, eventos.pagado de_pago, mesas.nombre lider, mesas.id, if (invitados.invitados is null, 0, invitados.invitados) invitados, if (mesas.id_area = 1, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_mesas, if (mesas.id_area = 2, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_barras, if(mujeres.mujeres is null, 0, mujeres.mujeres) mujeres, if (hombres.hombres is null, 0, hombres.hombres) hombres, if (pagados.pagados is null, 0, pagados.pagados) pagados, if (duplicados.duplicados is null, 0 , duplicados.duplicados) duplicados, max_pax_area, mesas.id_area, if (mesas.id_area = 1, if (round(invitados / max_pax_area) is null, 1, if (round(invitados / max_pax_area) <= 0, 1, round(invitados / max_pax_area))), 0) tot_mesas, if (mesas.id_area = 2, 1, 0) tot_barras, celebraciones.celebracion from admin_eventos_mesas mesas left join admin_eventos eventos on (eventos.id = mesas.id_evento and eventos.estado) left join admin_eventos_venues venues on (eventos.id_venue = venues.id and venues.estado) left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (mesas.id = invitados.id_mesa) left join (select count(mesas_invitados.id) mujeres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 0 and mesas_invitados.estado group by id_mesa) mujeres on (mesas.id = mujeres.id_mesa) left join (select count(mesas_invitados.id) hombres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 1 and mesas_invitados.estado group by id_mesa) hombres on (mesas.id = hombres.id_mesa) left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (mesas.id = pagados.id_mesa) left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (mesas.id = duplicados.id_mesa) left join admin_eventos_mesas_celebraciones celebraciones on (mesas.id_celebracion = celebraciones.id)  where mesas.estado and mesas.id_evento = " . $id_evento . " order by mesas.id_area, invitados desc;";
+    $str = "select distinct venues.tot_ubicaciones, eventos.pax, eventos.pagado de_pago, mesas.nombre lider, mesas.id, mesas.pax_estimado, mesas.sofa_estimado, if (invitados.invitados is null, 0, invitados.invitados) invitados, if (mesas.id_area = 1, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_mesas, if (mesas.id_area = 2, if (invitados.invitados is null, 0, invitados.invitados), 0) invitados_barras, if(mujeres.mujeres is null, 0, mujeres.mujeres) mujeres, if (hombres.hombres is null, 0, hombres.hombres) hombres, if (pagados.pagados is null, 0, pagados.pagados) pagados, if (duplicados.duplicados is null, 0 , duplicados.duplicados) duplicados, max_pax_area, mesas.id_area, if (mesas.sofa_estimado > 0, mesas.sofa_estimado, if (mesas.id_area = 1, if (round(invitados / max_pax_area) is null, 1, if (round(invitados / max_pax_area) <= 0, 1, round(invitados / max_pax_area))), 0)) tot_mesas, if (mesas.id_area = 2, 1, 0) tot_barras, celebraciones.celebracion from admin_eventos_mesas mesas left join admin_eventos eventos on (eventos.id = mesas.id_evento and eventos.estado) left join admin_eventos_venues venues on (eventos.id_venue = venues.id and venues.estado) left join (select count(*) invitados, id_mesa from admin_eventos_mesas_invitados where estado group by id_mesa) invitados on (mesas.id = invitados.id_mesa) left join (select count(mesas_invitados.id) mujeres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 0 and mesas_invitados.estado group by id_mesa) mujeres on (mesas.id = mujeres.id_mesa) left join (select count(mesas_invitados.id) hombres, id_mesa from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) where sexo = 1 and mesas_invitados.estado group by id_mesa) hombres on (mesas.id = hombres.id_mesa) left join (select count(*) pagados, id_mesa from admin_eventos_mesas_invitados where pagado and estado group by id_mesa) pagados on (mesas.id = pagados.id_mesa) left join (select id_mesa, count(repetido) duplicados from admin_eventos_mesas_invitados where repetido = 1 group by id_mesa) duplicados on (mesas.id = duplicados.id_mesa) left join admin_eventos_mesas_celebraciones celebraciones on (mesas.id_celebracion = celebraciones.id)  where mesas.estado and mesas.id_evento = " . $id_evento . " order by mesas.id_area, invitados desc;";
     // echo $str; exit();
     $reporte_pax = DB::select($str); 
 
     $data = [];
     foreach($reporte_pax as $key => $item) {
+      $str = "select meseros.* from admin_eventos_mesas mesas left join admin_users meseros on (mesas.id_mesero = meseros.id or mesas.id_mesero_2 = meseros.id) where mesas.estado and mesas.id = " . $item->id . ";";
+      $meseros = DB::select($str);
+
+      $meseros_temp = array();
+      foreach($meseros as $key_m => $item_m) {
+        $meseros_temp[] = $item_m->name;
+      }
+
       @$tot_mesas        += $item->tot_mesas;
       @$tot_barras       += $item->tot_barras;
       @$tot_invitados    += $item->invitados;
       @$invitados_mesas  += $item->invitados_mesas;
       @$invitados_barras += $item->invitados_barras;
       @$tot_ubicaciones   = $item->tot_ubicaciones;
+
+      $item->meseros = implode(' y ', $meseros_temp);
       $data[$item->id_area][] = $item;
     }
 

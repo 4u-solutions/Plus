@@ -84,7 +84,7 @@ class gerenciaController extends Controller
 
       $fechai = date('Y-m-d ' . config('global.horario_apertura'), strtotime($item->fecha));
       $fechaf   = date('Y-m-d ' . config('global.horario_cierre'), strtotime($item->fecha . ' +1 day'));
-      $str = "select au.id, au.name, au.pago_minimo, ap.id_tipo, sum(if (ap.id_tipo = 6, 0, apd.subtotal)) monto, sum(if (ap.id_tipo = 6, ap.monto, 0)) propina, alm.id id_asignacion from admin_users au left join admin_pedidos ap on (au.id = ap.id_usuario and ap.estado and ap.created_at between '$fechai' and '$fechaf') left join admin_pedidos_detalle apd on (ap.id = apd.id_pedido and apd.estado and apd.contable = 1) left join admin_lista_meseros alm on (alm.id_mesero = au.id and alm.fecha = '" . $item->fecha . "') where au.roleUS = 4 group by au.name;";
+      $str = "select au.id, au.name, au.pago_minimo, ap.id_tipo, sum(if (ap.id_tipo = 6, 0, apd.subtotal)) monto, sum(if (ap.id_tipo = 6, ap.monto, 0)) propina, alm.id id_asignacion from admin_users au left join admin_pedidos ap on (au.id = ap.id_usuario and ap.estado) left join admin_pedidos_detalle apd on (ap.id = apd.id_pedido and apd.estado and apd.contable = 1 and apd.created_at between '$fechai' and '$fechaf') left join admin_lista_meseros alm on (alm.id_mesero = au.id and alm.fecha = '" . $item->fecha . "') where au.roleUS = 4 and au.es_plus group by au.name;";
       // echo $str; exit();
 
       $dataTemp = [];
@@ -134,7 +134,8 @@ class gerenciaController extends Controller
     //RESUMEN VENTAS TOTALES
 
     $fecha  = @$fecha ?: date('Y-m-d');
-    $str = "select sum(monto) total_vendido from admin_pedidos where estado and created_at between '$fecha_inicial' and '$fecha_final' and id_tipo < 4;";
+    $str = "select sum(detalle.subtotal) total_vendido from admin_pedidos pedidos left join admin_pedidos_detalle detalle on (detalle.id_pedido = pedidos.id) where pedidos.estado and detalle.estado and detalle.contable and detalle.created_at between '$fecha_inicial' and '$fecha_final' and pedidos.id_tipo < 4 and aprobado and despachado;";
+    // echo $str; exit();
     $ventas = DB::select($str)[0];
 
 
@@ -170,19 +171,21 @@ class gerenciaController extends Controller
           $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha_inicial));
         }
         $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
-        $str = "select distinct ap.nombre,
+        $str = "select distinct ap.nombre, tw.contable,
           ap.precio *  if (ai2.cantidad_inicial is null, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)), ai2.cantidad_inicial) valor_inicial, 
 
           ap.precio *  if (ai2.cantidad_final is null, ((if (ai2.cantidad_inicial is null, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)), ai2.cantidad_inicial)) + if (ai2.recarga is null, 0, ai2.recarga)) - (if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad)), ai2.cantidad_final) valor_final
 
-          from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '" . substr($fecha_inicial, 0, 10) . "') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.orden;";
+          from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '" . substr($fecha_inicial, 0, 10) . "') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join admin_tipo_waro tw on (ap.id_tipo = tw.id) where ap.estado order by ap.id_tipo, ap.orden;";
+        // echo $str; exit();
         $inventario = DB::select($str);
 
         $valor_inicial = 0;
         foreach($inventario as $key => $item) {
-          $valor_inicial += $item->valor_inicial;
+          if ($item->contable) {
+            $valor_inicial += $item->valor_inicial;
+          }
         }
-
     
       //VALOR VENTA FINAL FISICO
         $ultima_fecha_invent = @DB::select("select fecha from admin_inventario where fecha < '$fecha_final' order by fecha desc limit 1;")[0]->fecha;
@@ -195,17 +198,20 @@ class gerenciaController extends Controller
           $fecha_inicio  = date('Y-m-d ' . config('global.horario_apertura'), strtotime($fecha_final));
         }
         $fecha_final = date('Y-m-d ' . config('global.horario_cierre'), strtotime($dia_despues));
-        $str = "select distinct ap.nombre,
+        $str = "select distinct ap.nombre, tw.contable,
           ap.precio *  if (ai2.cantidad_inicial is null, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)), ai2.cantidad_inicial) valor_inicial, 
 
           ap.precio *  if (ai2.cantidad_final is null, ((if (ai2.cantidad_inicial is null, if (ai.cantidad_final is null, if (ai.cantidad_inicial, ai.cantidad_inicial, 0) + if (ai.recarga, ai.recarga, 0) + if (aii.ingreso is null, 0, aii.ingreso), ai.cantidad_final + if (aii.ingreso is null, 0, aii.ingreso)), ai2.cantidad_inicial)) + if (ai2.recarga is null, 0, ai2.recarga)) - (if (producto_vendido.cantidad is null, 0, producto_vendido.cantidad)), ai2.cantidad_final) valor_final
 
-          from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '" . substr($fecha_final, 0, 10) . "') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) where ap.estado order by ap.id_tipo, ap.orden;";
+          from admin_productos ap left join admin_inventario ai on (ap.id = ai.id_producto and ai.fecha = '$ultima_fecha_invent') left join admin_inventario_ingresos aii on (ap.id = aii.id_producto and aii.fecha between '$dia_anterior' and '$fecha') left join admin_inventario ai2 on (ap.id = ai2.id_producto and ai2.fecha = '" . substr($fecha_final, 0, 10) . "') left join (select id_producto, sum(cantidad) cantidad from admin_pedidos_detalle left join admin_pedidos on (admin_pedidos_detalle.id_pedido = admin_pedidos.id and admin_pedidos.id_tipo <= 5) where aprobado and despachado and admin_pedidos_detalle.estado and admin_pedidos_detalle.created_at between '$fecha_inicio' and '$fecha_final' group by id_producto) producto_vendido on (ap.id = producto_vendido.id_producto) left join admin_tipo_waro tw on (ap.id_tipo = tw.id) where ap.estado order by ap.id_tipo, ap.orden;";
+        // echo $str; exit();
         $inventario = DB::select($str);
 
         $valor_final = 0;
         foreach($inventario as $key => $item) {
-          $valor_final   += $item->valor_inicial;
+          if ($item->contable) {
+            $valor_final   += $item->valor_inicial;
+          }
         }
 
     $fecha_final   = date("Y-m-d " . config('global.horario_cierre'), strtotime($fecha_final . ' -1 day'));

@@ -70,7 +70,7 @@ class shareController extends Controller
   }
 
   function informacion_para_evento($id_mesa = null) {
-    $str = "select admin_eventos_mesas.*, admin_eventos.pagado, admin_eventos.listas_cerradas, admin_users.name mesero, admin_users.id id_mesero, admin_users2.name cobrador_1, admin_users2.id id_cobrador_1, admin_users4.name cobrador_2, admin_users5.id id_cobrador_2, admin_users3.name jefe_1, admin_users3.id id_jefe_1, admin_users4.name jefe_2, admin_users4.id id_jefe_2, admin_eventos_venues.link_waze, admin_eventos_mesas_pull.nombre pull, admin_eventos_mesas_lideres.id_lider from admin_eventos_mesas left join admin_eventos on (admin_eventos_mesas.id_evento = admin_eventos.id and admin_eventos.estado) left join admin_users on (admin_users.id = admin_eventos_mesas.id_mesero) left join admin_users admin_users2 on (admin_users2.id = admin_eventos_mesas.id_cobrador_1) left join admin_users admin_users5 on (admin_users5.id = admin_eventos_mesas.id_cobrador_2) left join admin_users admin_users3 on (admin_users3.id = admin_eventos_mesas.id_jefe_1) left join admin_users admin_users4 on (admin_users4.id = admin_eventos_mesas.id_jefe_2) left join admin_eventos_venues on (admin_eventos_venues.id = admin_eventos.id_venue and admin_eventos_venues.estado) left join admin_eventos_mesas_pull on (admin_eventos_mesas.id_pull = admin_eventos_mesas_pull.id) left join admin_eventos_mesas_lideres on (admin_eventos_mesas_lideres.id_mesa = admin_eventos_mesas.id) where admin_eventos_mesas.id = '$id_mesa';";
+    $str = "select admin_eventos_mesas.*, celebraciones.celebracion, admin_eventos.pagado, admin_eventos.listas_cerradas, admin_users.name mesero, admin_users.id id_mesero, admin_users2.name cobrador_1, admin_users2.id id_cobrador_1, admin_users4.name cobrador_2, admin_users5.id id_cobrador_2, admin_users3.name jefe_1, admin_users3.id id_jefe_1, admin_users4.name jefe_2, admin_users4.id id_jefe_2, admin_eventos_venues.link_waze, admin_eventos_mesas_pull.nombre pull, admin_eventos_mesas_lideres.id_lider from admin_eventos_mesas left join admin_eventos on (admin_eventos_mesas.id_evento = admin_eventos.id and admin_eventos.estado) left join admin_users on (admin_users.id = admin_eventos_mesas.id_mesero) left join admin_users admin_users2 on (admin_users2.id = admin_eventos_mesas.id_cobrador_1) left join admin_users admin_users5 on (admin_users5.id = admin_eventos_mesas.id_cobrador_2) left join admin_users admin_users3 on (admin_users3.id = admin_eventos_mesas.id_jefe_1) left join admin_users admin_users4 on (admin_users4.id = admin_eventos_mesas.id_jefe_2) left join admin_eventos_venues on (admin_eventos_venues.id = admin_eventos.id_venue and admin_eventos_venues.estado) left join admin_eventos_mesas_pull on (admin_eventos_mesas.id_pull = admin_eventos_mesas_pull.id) left join admin_eventos_mesas_lideres on (admin_eventos_mesas_lideres.id_mesa = admin_eventos_mesas.id) left join admin_eventos_mesas_celebraciones celebraciones on (celebraciones.id = admin_eventos_mesas.id_celebracion) where admin_eventos_mesas.id = '$id_mesa';";
     $mesa = DB::select($str)[0];
 
     DB::table('admin_eventos_mesas_invitados')->update([
@@ -205,18 +205,18 @@ class shareController extends Controller
   }
 
   public function cargar_formulario_pago($id_invitado = 0) {
-    $str      = "select invitados.*, mesas.id id_mesa, mesas.id_evento, eventos.pagado es_pagado, mesas.pull, mesas.id_pull, eventos.nombre evento, eventos.titulo, eventos.precio, eventos.fee from admin_eventos_mesas_invitados invitados left join admin_eventos_mesas mesas on (invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where invitados.id = '$id_invitado';";
+    $str      = "select invitados.*, mesas.id id_mesa, mesas.id_evento, eventos.pagado es_pagado, mesas.pull, mesas.id_pull, eventos.nombre evento, eventos.titulo, eventos.precio, eventos.fee, mesas_invitados.id id_invitado from admin_eventos_mesas_invitados mesas_invitados left join admin_eventos_invitados invitados on (mesas_invitados.id_invitado = invitados.id) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas_invitados.id = '$id_invitado';";
     $data = DB::select($str)[0];
 
     $perfil_completo = true;
-    // if (!$data->telefono || !$data->correo || !$data->fecha_nacimiento) {
-    //   $perfil_completo = false;
-    //   $titulo = 'DEBES ACTUALIZAR LA INFORMACIÓN  DE TU CUENTA PARA CONTINUAR';
-    //   $boton  = 'Guardar';
-    // } else {
+    if (!$data->telefono || !$data->correo || !$data->fecha_nacimiento) {
+      $perfil_completo = false;
+      $titulo = 'DEBES ACTUALIZAR LA INFORMACIÓN  DE TU CUENTA PARA CONTINUAR';
+      $boton  = 'Guardar';
+    } else {
       $titulo = 'PROCESO DE PAGO';
       $boton  = 'Pagar';
-    // }
+    }
 
     $str = "select pull.* from admin_eventos_mesas mesas left join admin_eventos_mesas_pull pull on (mesas.id_pull = pull.id) where mesas.id = " . $data->id_mesa . ";";
     $pull = DB::select($str)[0];
@@ -307,8 +307,8 @@ class shareController extends Controller
       if ($_POST['_token']) {
         $no_autoriacion = rand(9999999, 99999999);
         if ($no_autoriacion) {
-          $ultimos_digitos = substr($_POST['tarjeta_num'], strrpos($_POST['tarjeta_num'], ' ') + 1);
-          $fecha_exp       = explode('/', str_replace(' ', '', $_POST['tarjeta_fv']));
+          $ultimos_digitos = substr(@$_POST['tarjeta_num'], strrpos(@$_POST['tarjeta_num'], ' ') + 1);
+          $fecha_exp       = explode('/', str_replace(' ', '', @$_POST['tarjeta_fv']));
 
           foreach($_POST['rubro'] as $key => $item) {
             $pago = eventosPagosModel::create([
@@ -343,12 +343,43 @@ class shareController extends Controller
               ($key == 'id_evento' ? 'pagado' : 'pull_pagado') => $_POST['metodo_pago'] == 2 ? 2 : 1
             ]);
 
+            $str = "select invitados.*, mesas.nombre reservacion, eventos.fecha evento from admin_eventos_invitados invitados left join admin_eventos_mesas_invitados mesas_invitados on (invitados.id = mesas_invitados.id_invitado) left join admin_eventos_mesas mesas on (mesas_invitados.id_mesa = mesas.id) left join admin_eventos eventos on (mesas.id_evento = eventos.id) where mesas_invitados.id = " . $_POST['id_invitado'] . " and id_mesa = " . $_POST['id_mesa'] . ";";
+            $invitado = DB::select($str)[0];
 
             $rubros_pagados[] = array(
               'id'    => $key,
               'monto' => $item['total']
             );
             $denegado = false;
+
+            $array_mes = array(1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre');
+
+            $params=array(
+            'token' => 'xwp3e9ci2wcq7k7q',
+            'to' => '+50230147603',
+            'body' => 'Hola Mafu, *' . $invitado->nombre . '* de la reservación *' . $invitado->reservacion . '* para el *' . substr($invitado->evento, 8, 2) . ' de ' . $array_mes[(int)substr($invitado->evento, 5, 2)] . '* acaba de pagar con transferencia, ingresa al sistema y valida el pago por favor.'
+            );
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+              CURLOPT_URL => "https://api.ultramsg.com/instance69189/messages/chat",
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_ENCODING => "",
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 30,
+              CURLOPT_SSL_VERIFYHOST => 0,
+              CURLOPT_SSL_VERIFYPEER => 0,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => "POST",
+              CURLOPT_POSTFIELDS => http_build_query($params),
+              CURLOPT_HTTPHEADER => array(
+                "content-type: application/x-www-form-urlencoded"
+              ),
+            ));
+
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
+
+            curl_close($curl);
           }
         }
       }

@@ -141,7 +141,7 @@
 
               <div class="col-8" style="overflow-x: scroll;">
                 @php $widthR = 165; @endphp
-                @php $numCol = ($id_area == 1 ? 5 : 4) + ($data[$id_area][0]->de_pago ? 2 : 0); @endphp
+                @php $numCol = ($id_area == 1 ? 6 : 4) + ($data[$id_area][0]->de_pago ? 2 : 0); @endphp
                 @php $widthC = (1 - (($widthR - ($widthR / $numCol)) / $widthR)) * 100; @endphp
 
                 <style type="text/css">
@@ -179,11 +179,17 @@
                     <label class="text-light py-1 fs-5"> Celebración </label>
                   </div>
 
+                  @if ($id_area == 1)
+                    <div class="col-1 border bg-dark widthC_{{$id_area}}">
+                      <label class="text-light py-1 fs-5"> Meseros </label>
+                    </div>
+                  @endif
+
                   @php @$no_lider        = 1; @endphp
                   @foreach($data[$id_area] as $key => $item)
                     <div class="col-2 border widthC_{{$id_area}}">
-                      @php @$sub_total_invitados += $item->invitados; @endphp
-                      <label class="py-1 fs-5"> {{$item->invitados}} </label>
+                      @php @$sub_total_invitados += $item->pax_estimado > $item->invitados ? $item->pax_estimado : $item->invitados; @endphp
+                      <label class="py-1 fs-5"> {{$item->pax_estimado > $item->invitados ? $item->pax_estimado : $item->invitados}} </label>
                     </div>
 
                     @if ($item->de_pago)
@@ -210,8 +216,8 @@
 
                     @if ($id_area == 1)
                       <div class="col-1 border widthC_{{$id_area}}">
-                        @php @$sub_total_mesas += $item->tot_mesas; @endphp
-                        <label class="py-1 fs-5"> {{$item->tot_mesas}} </label>
+                        @php @$sub_total_mesas += $item->sofa_estimado ?: $item->tot_mesas; @endphp
+                        <label class="py-1 fs-5"> {{$item->sofa_estimado ?: $item->tot_mesas}} </label>
                       </div>
                     @endif
 
@@ -219,6 +225,13 @@
                         @php @$sub_total_celebra += $item->celebracion ? 1 : 0; @endphp
                       <label class="py-1 fs-5"> {{$item->celebracion ?: 'Ninguna'}} </label>
                     </div>
+
+                    @if ($id_area == 1)
+                      <div class="col-1 border widthC_{{$id_area}}">
+                        <label class="py-1 fs-5"> {{$item->meseros ?: 'Sin asignar'}} </label>
+                      </div>
+                    @endif
+
                     @php $no_lider++; @endphp
                   @endforeach
 
@@ -250,6 +263,10 @@
 
                   <div class="col-1 border widthC_{{$id_area}}">
                       <label class="fs-1"> {{$sub_total_celebra}} </label>
+                  </div>
+
+                  <div class="col-1 border widthC_{{$id_area}}">
+                      <label class="fs-1"> </label>
                   </div>
                 </div>
               </div>
@@ -285,64 +302,64 @@
           @php $widthC = (1 - (($widthR - ($widthR / $numCol)) / $widthR)) * 100; @endphp
 
           <style type="text/css">
-            .widthC_1 { width: {{$widthC}}% !important; }
+            .widthC_3 { width: {{$widthC}}% !important; }
           </style>
 
           <div class="row" style="width: {{$widthR}}%;" id="panel-derecho">
-            <div class="col-1 border bg-dark widthC_1">
+            <div class="col-1 border bg-dark widthC_3">
               <label class="text-light py-1 fs-5"> En lista </label>
             </div>
 
             @if ($data[1][0]->de_pago)
-              <div class="col-1 border bg-dark widthC_1">
+              <div class="col-1 border bg-dark widthC_3">
                 <label class="text-light py-1 fs-5"> Pagados </label>
               </div>
-              <div class="col-1 border bg-dark widthC_1">
+              <div class="col-1 border bg-dark widthC_3">
                 <label class="text-light py-1 fs-5"> Por pagar </label>
               </div>
             @endif
 
-            <div class="col-1 border bg-dark widthC_1">
+            <div class="col-1 border bg-dark widthC_3">
               <label class="text-light py-1 fs-5"> Mujeres </label>
             </div>
-            <div class="col-1 border bg-dark widthC_1">
+            <div class="col-1 border bg-dark widthC_3">
               <label class="text-light py-1 fs-5"> Hombres </label>
             </div>
 
-            <div class="col-1 border bg-dark widthC_1">
+            <div class="col-1 border bg-dark widthC_3">
               <label class="text-light py-1 fs-5"> Mesas </label>
             </div>
 
-            <div class="col-1 border bg-dark widthC_1">
+            <div class="col-1 border bg-dark widthC_3">
               <label class="text-light py-1 fs-5"> Celebraciones </label>
             </div>
 
 
-            <div class="col-1 border widthC_1">
+            <div class="col-1 border widthC_3">
               <label class="fs-1"> {{$total_invitados}} </label>
             </div>
 
             @if ($data[1][0]->de_pago)
-              <div class="col-1 border widthC_1">
+              <div class="col-1 border widthC_3">
                 <label class="fs-1"> {{$total_pagados}} </label>
               </div>
-              <div class="col-2 border widthC_1">
+              <div class="col-2 border widthC_3">
                 <label class="fs-1"> {{$total_por_pagar}} </label>
               </div>
             @endif
 
-            <div class="col-1 border widthC_1">
+            <div class="col-1 border widthC_3">
               <label class="fs-1"> {{$total_mujeres}} </label>
             </div>
-            <div class="col-1 border widthC_1">
+            <div class="col-1 border widthC_3">
               <label class="fs-1"> {{$total_hombres}} </label>
             </div>
 
-            <div class="col-1 border widthC_1">
+            <div class="col-1 border widthC_3">
               <label class="fs-1"> {{$total_mesas}} </label>
             </div>
 
-            <div class="col-1 border widthC_1">
+            <div class="col-1 border widthC_3">
               <label class="fs-1"> {{$total_celebra}} </label>
             </div>
           </div>

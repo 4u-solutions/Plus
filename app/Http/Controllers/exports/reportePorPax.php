@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Concerns\WithDrawings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use App\Helper\Helper;
 
-class reportePorPax implements FromView,WithDrawings
+class reportePorPax implements FromView
 {
     protected $data, $fecha;
     public function __construct($data, $fecha){
@@ -19,19 +19,19 @@ class reportePorPax implements FromView,WithDrawings
         $this->fecha = $fecha;
     }
 
-    public function drawings()
-    {
-        $public_path = (strpos(getcwd(), 'themanorgt') ? getcwd() :  (substr(getcwd(), 0, strrpos(getcwd(), '/')) . '/public')) . '/';
+    // public function drawings()
+    // {
+    //     $public_path = (strpos(getcwd(), 'themanorgt') ? getcwd() :  (substr(getcwd(), 0, strrpos(getcwd(), '/')) . '/public')) . '/';
 
-        $drawing = new Drawing();
-        $drawing->setName('Logo');
-        $drawing->setDescription('Logo - test'.Helper::get_platform());
-        $drawing->setPath($public_path . 'img_admin/logo-plus-negro.png');
-        $drawing->setHeight(80);
-        $drawing->setCoordinates('A1');
+    //     $drawing = new Drawing();
+    //     $drawing->setName('Logo');
+    //     $drawing->setDescription('Logo - test'.Helper::get_platform());
+    //     $drawing->setPath($public_path . 'img_admin/logo-plus-negro.png');
+    //     $drawing->setHeight(80);
+    //     $drawing->setCoordinates('A1');
 
-        return $drawing;
-    }
+    //     return $drawing;
+    // }
 
     public function view(): View
     {

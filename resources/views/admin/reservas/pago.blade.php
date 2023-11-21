@@ -2,11 +2,32 @@
 	<div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
 	  	<div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
 	    	<div class="modal-body p-0">
+	    		@if (!$perfil_completo)
+	                <div class="row">
+	                  <div class="col-12">
+	                    <label class="fw-bold"> Nombre </label>
+	                    <input class="form-control w-100 text-center fs-3" id="nombre" name="nombre" type="text" onClick="this.select();" autocomplete="off" />
+	                  </div>
+	                  <div class="col-12 pt-1">
+	                    <label class="fw-bold"> Télefono </label>
+	                    <input class="form-control w-100 text-center fs-3" id="telefono" name="telefono" type="text" onClick="this.select();" autocomplete="off" />
+	                  </div>
+	                  <div class="col-12 pt-1">
+	                    <label class="fw-bold"> Correo </label>
+	                    <input class="form-control w-100 text-center fs-3" id="correo" name="correo" type="text" onClick="this.select();" autocomplete="off" />
+	                  </div>
+	                  <div class="col-12 pt-1">
+	                    <label class="fw-bold"> Cumpleaños </label>
+	                    <input class="form-control w-100 text-center fs-3" id="fecha_nacimiento" name="fecha_nacimiento" type="date" />
+	                  </div>
+	                  <input type="hidden" id="id_lider" name="id_lider" value="" />
+	                </div>
+	    		@else
 			        <form id="tarjeta_form" method="POST" action="/admin/generar_pago" onsubmit="event.preventDefault();" enctype="multipart/form-data">
 			          	@csrf
 			          	<input type="hidden" name="id_evento" value="{{$data->id_evento}}" />
 			          	<input type="hidden" name="id_mesa"   value="{{$data->id_mesa}}" />
-			          	<input type="hidden" name="id_invitado" value="{{$data->id}}" />
+			          	<input type="hidden" name="id_invitado" value="{{$data->id_invitado}}" />
 
 						<h3 class="d-block text-start bg-dark text-light p-1 mb-0">Tu orden</h3>
 						@if ($data->es_pagado && !$data->pagado)
@@ -52,7 +73,7 @@
 								<label class="fs-4 d-block text-start"> Tarjeta </label>
 							</div>
 							<div class="col-1 p-0 form-check">
-								<input type="radio" class="form-check-input d-inline-block" name="metodo_pago" id="metodo_tarjeta" value="3" onclick="seleccionarMetodo(1)" checked />
+								<input type="radio" class="form-check-input d-inline-block" name="metodo_pago" id="metodo_tarjeta" value="3" onclick="seleccionarMetodo(1)" />
 		                    </div>
 		                	-->
 							<div class="col-5">
@@ -62,6 +83,7 @@
 								<input type="radio" class="form-check-input d-inline-block" name="metodo_pago" id="metodo_deposito" value="2" onclick="seleccionarMetodo(2)" checked />
 		                    </div>
 						</div>
+						<!--
 						<div class="row mt-1" id="metodo_1" style="display: none;">
 							<div class="col-12">
 								<label class="fs-4 d-block text-start control-label"> Número de tarjeta </label>
@@ -79,19 +101,21 @@
 		                    	<input class="form-control" id="tarjeta_cvc" name="tarjeta_cvc" type="text" value="" placeholder="CVC" />
 		                    </div>
 	                    </div>
+	                	-->
 						<div class="row mt-1" id="metodo_2">
 							<!--
 							<div class="col-12">
 								<label class="fs-4 d-block text-start control-label"> No. autorización </label>
 		                    	<input class="form-control" id="no_boleta" name="no_boleta" type="text" value="" />
 		                    </div>
-		                    -->
+		                	-->
 							<div class="col-12">
 								<label class="fs-4 d-block text-start control-label"> Subir boleta </label>
 		                    	<input class="form-control" id="boleta-pago" name="boleta-pago" type="file" />
 		                    </div>
 						</div>
 					</form>
+				@endif
         	</div>
       	</div>
     </div>

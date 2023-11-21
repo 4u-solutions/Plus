@@ -67,8 +67,16 @@
                     <div class="col-4 border bg-dark">
                       <label class="text-light py-1 fs-4"> {{$item->pull_pagado == 2 ? 'Aprobar p' : 'P'}}ull </label>
                     </div>
-                    <div class="col-8 border form-check">
+                    <div class="col-2 border form-check">
                       <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="aprobar_pull" id="aprobar_pull" value="1" {{$item->pull_pagado == 1 ? 'checked' : ''}} />
+                    </div>
+
+                    <div class="col-6 border">
+                      @if ($item->pull_pagado == 2)
+                        <a href="#" onclick="verBoleta({{$item->id_pago}})" title="Ver boleta" class="d-inline-block text-dark mt-1">
+                          <i style="height: 1.8rem; width: 1.8rem;" data-feather="image"></i> 
+                        </a>
+                      @endif
                     </div>
                   @endif
 
@@ -135,8 +143,16 @@
                     <div class="col-4 border bg-dark">
                       <label class="text-light py-1 fs-4"> {{$item->pull_pagado == 2 ? 'Aprobar p' : 'P'}}ull </label>
                     </div>
-                    <div class="col-8 border form-check">
+                    <div class="col-2 border form-check">
                       <input type="checkbox" class="form-check-input ms-0 mt-1" rel="{{$item->id}}" name="aprobar_pull" id="aprobar_pull" value="1" {{$item->pull_pagado == 1 ? 'checked' : ''}} />
+                    </div>
+
+                    <div class="col-6 border">
+                      @if ($item->pull_pagado == 2)
+                        <a href="#" onclick="verBoleta({{$item->id_pago}})" title="Ver boleta" class="d-inline-block text-dark mt-1">
+                          <i style="height: 1.8rem; width: 1.8rem;" data-feather="image"></i> 
+                        </a>
+                      @endif
                     </div>
                   @endif
 
@@ -311,6 +327,27 @@
          $("div#invitado_contenedor[rel*='" + valor_busqueda + "']").show();
       })
     });
+
+    function verBoleta(id_pago) {
+      Swal.fire({
+        customClass: {
+          cancelButton: 'btn btn-dark fs-1'
+        },
+        cancelButtonText: 'Cerrar',
+        html:`
+          <div class="modal-dialog" role="document" style="margin: auto; max-width:700px;">
+            <div class="modal-content" style="border-left:none; border-right: none; border-radius:0; margin:auto;">
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-12">
+                    <img src="{{asset('boleta-pago/` + id_pago + `.jpg')}}" class="w-100" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`
+      });
+    }
 
     function agregarInvitado(id_mesa) {
       Swal.fire({

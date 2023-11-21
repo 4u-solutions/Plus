@@ -74,8 +74,12 @@
           @endif
         </div>
         
-        <div class="col-12 mt-1 text-center">
-          <label class="pb-1 fs-1 fw-bold"> Lista de {{$mesa->nombre}} </label>
+        <div class="col-12 my-1 text-center">
+          <label class="fs-1 fw-bold"> Lista de {{$mesa->nombre}} </label>
+          <label class="fs-1 fw-bold"> {{$mesa->pax}} invitados </label>
+          @if ($mesa->id_celebracion)
+            <label class="fs-1 fw-bold"> Celebra {{$mesa->celebracion}} No. {{$mesa->info_celebracion}} </label>
+          @endif
         </div>
 
         <div class="row">
@@ -156,11 +160,9 @@
                             </a>
 
                             @if (($evento->pagado && !$item_m->pagado) || ($mesa->pull && $mesa->id_pull && !$item_m->pull_pagado))
-                              <!--
                               <a href="#" onclick="realizarPago({{$item_m->id}})" class="d-block text-center text-dark pt-1 fw-bold" title="Pagar" id="realizar_pago">
                                 <i style="height: 1.8rem; width: 1.8rem;" data-feather="credit-card"></i> 
                               </a>
-                            -->
                             @endif
                           </div>
 
@@ -252,11 +254,9 @@
                             </a>
 
                             @if (($mesa->pull && $mesa->id_pull) || ($evento->pagado && !$item_h->pagado))
-                              <!--
                               <a href="#" onclick="realizarPago({{$item_h->id}})" class="d-block text-center pt-1 text-dark fw-bold" title="Pagar" id="realizar_pago">
                                 <i style="height: 1.8rem; width: 1.8rem;" data-feather="credit-card"></i> 
                               </a>
-                              -->
                             @endif
                           </div>
                         </div>
@@ -409,7 +409,7 @@
                   @else
                     @if ($evento->id_venue != 2)
                       @if (File::exists($public_path . 'menu/' . $i .'_0.jpg'))
-                        <img src="{{asset('menu/' . $i . '_0.jpg')}}" class="w-100">
+                        <img src="{{asset('menu/' . $i . '_0.jpg?' . date('YmdHis'))}}" class="w-100">
                       @endif  
                     @endif
                   @endif
@@ -671,7 +671,7 @@
             }).then(result => {
               if (result.isConfirmed) {
 
-                if ($('#tarjeta_num').length >= 1) {
+                if ($('#boleta-pago').length >= 1) {
                   $.ajax({
                     type:     "POST",
                     url:      "/admin/emitir_pago",
